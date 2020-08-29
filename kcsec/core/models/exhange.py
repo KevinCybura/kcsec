@@ -1,7 +1,7 @@
 from django.db import models
 
 from kcsec.core.base import BaseModel
-from kcsec.core.models._meta import  core_entity
+from kcsec.core.models._meta import core_entity
 
 
 class InternationalExchange(BaseModel):
@@ -10,7 +10,6 @@ class InternationalExchange(BaseModel):
     description = models.CharField(max_length=255)
     mic = models.CharField(max_length=10)
     exchange_suffix = models.CharField(max_length=10)
-
 
     class Meta:
         db_table = core_entity("international_exchange")

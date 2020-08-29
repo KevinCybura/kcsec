@@ -1,7 +1,7 @@
 from django.db import models
 
 from kcsec.core.base import BaseModel
-from kcsec.core.models._meta import  core_entity
+from kcsec.core.models._meta import core_entity
 
 TYPE_CHOICES = [
     ("ad", "ad"),

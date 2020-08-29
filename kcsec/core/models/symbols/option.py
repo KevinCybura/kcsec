@@ -1,8 +1,8 @@
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
-from kcsec.core.models._meta import  core_entity
 from kcsec.core.base import BaseModel
+from kcsec.core.models._meta import core_entity
 
 
 class Option(BaseModel):

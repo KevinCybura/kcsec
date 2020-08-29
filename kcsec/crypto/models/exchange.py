@@ -1,6 +1,8 @@
 from django.db import models
+
 from kcsec.core.base import BaseModel
 from kcsec.crypto.models._meta import crypto_entity
+
 
 class Exchange(BaseModel):
     exchange = models.CharField(max_length=30, primary_key=True)

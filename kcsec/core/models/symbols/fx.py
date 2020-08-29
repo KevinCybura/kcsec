@@ -1,7 +1,7 @@
 from django.db import models
 
-from kcsec.core.models._meta import  core_entity
 from kcsec.core.base import BaseModel
+from kcsec.core.models._meta import core_entity
 
 
 class Currency(BaseModel):
@@ -12,7 +12,6 @@ class Currency(BaseModel):
         db_table = core_entity("currency")
         verbose_name = "Currency"
         verbose_name_plural = "Currencies"
-
 
 
 class CurrencyPair(BaseModel):

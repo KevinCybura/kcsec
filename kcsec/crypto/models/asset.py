@@ -1,6 +1,8 @@
 from django.db import models
+
 from kcsec.core.base import BaseModel
 from kcsec.crypto.models._meta import crypto_entity
+
 
 class Asset(BaseModel):
     asset = models.CharField(max_length=25, primary_key=True)
@@ -18,7 +20,7 @@ class Asset(BaseModel):
     volume_1hrs_usd = models.FloatField()
     volume_1day_usd = models.FloatField()
     volume_1mth_usd = models.FloatField()
-    price_usd = models.DecimalField(decimal_places=2, max_digits=100)
+    price_usd = models.DecimalField(decimal_places=5, max_digits=50)
 
     class Meta:
         db_table = crypto_entity("asset")

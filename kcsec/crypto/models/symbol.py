@@ -16,9 +16,9 @@ class Symbol(BaseModel):
     symbol_id = models.CharField(max_length=150, unique=True)
     exchange = models.ForeignKey("crypto.Exchange", on_delete=models.DO_NOTHING)
     symbol_type = models.CharField(max_length=10, choices=SymbolTypeChoices.choices)
-    asset_id_base = models.ForeignKey("crypto.Asset", related_name="base",on_delete=models.DO_NOTHING)
-    asset_id_quote = models.ForeignKey("crypto.Asset", related_name="quote",on_delete=models.DO_NOTHING)
-    asset_id_unit = models.ForeignKey("crypto.Asset", related_name="unit",on_delete=models.DO_NOTHING)
+    asset_id_base = models.ForeignKey("crypto.Asset", related_name="base", on_delete=models.DO_NOTHING)
+    asset_id_quote = models.ForeignKey("crypto.Asset", related_name="quote", on_delete=models.DO_NOTHING)
+    asset_id_unit = models.ForeignKey("crypto.Asset", related_name="unit", on_delete=models.DO_NOTHING)
     data_start = models.DateField()
     data_end = models.DateField()
     data_quote_start = models.DateTimeField()
@@ -33,7 +33,7 @@ class Symbol(BaseModel):
     volume_1hrs_usd = models.FloatField()
     volume_1day_usd = models.FloatField()
     volume_1mth_usd = models.FloatField()
-    price = models.DecimalField(decimal_places=2, max_digits=100)
+    price = models.DecimalField(decimal_places=5, max_digits=50)
 
     class Meta:
         db_table = crypto_entity("symbol")

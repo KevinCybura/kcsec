@@ -1,4 +1,4 @@
-from .common import *
+from kcsec.config.settings.common import *
 
 SECRET_KEY = "local-not-so-secret-key"
 
@@ -8,10 +8,10 @@ SECRET_KEY = "local-not-so-secret-key"
 DATABASES = {
     "default": {
         "ENGINE": "psqlextra.backend",
-        "NAME": os.getenv("DB_NAME", "kcsec"),
-        "USER": os.getenv("DB_USER", "kcsec"),
-        "PASSWORD": os.getenv("DB_PASSWORD", ""),
-        "HOST": "localhost",
+        "NAME": os.getenv("POSTGRES_NAME", "kcsec"),
+        "USER": os.getenv("POSTGRES_USER", "kcsec"),
+        "PASSWORD": os.getenv("POSTGRES_PASSWORD", ""),
+        "HOST": os.getenv("POSTGRES_HOST", "localhost"),
         "PORT": "5432",
     }
 }

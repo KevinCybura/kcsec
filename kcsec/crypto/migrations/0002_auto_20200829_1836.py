@@ -14,10 +14,14 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AlterField(
-            model_name="asset", name="price_usd", field=models.DecimalField(decimal_places=5, max_digits=50),
+            model_name="asset",
+            name="price_usd",
+            field=models.DecimalField(decimal_places=5, max_digits=50),
         ),
         migrations.AlterField(
-            model_name="symbol", name="price", field=models.DecimalField(decimal_places=5, max_digits=50),
+            model_name="symbol",
+            name="price",
+            field=models.DecimalField(decimal_places=5, max_digits=50),
         ),
         migrations.CreateModel(
             name="Quote",
@@ -38,6 +42,8 @@ class Migration(migrations.Migration):
                 "verbose_name_plural": "Crypto currency quotes",
                 "db_table": 'crypto"."quote',
             },
-            managers=[("objects", psqlextra.manager.manager.PostgresManager()),],
+            managers=[
+                ("objects", psqlextra.manager.manager.PostgresManager()),
+            ],
         ),
     ]

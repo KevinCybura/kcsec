@@ -28,8 +28,14 @@ class Migration(migrations.Migration):
                 ("code", models.CharField(max_length=10, primary_key=True, serialize=False)),
                 ("name", models.CharField(max_length=50)),
             ],
-            options={"verbose_name": "Currency", "verbose_name_plural": "Currencies", "db_table": 'core"."currency',},
-            managers=[("objects", psqlextra.manager.manager.PostgresManager()),],
+            options={
+                "verbose_name": "Currency",
+                "verbose_name_plural": "Currencies",
+                "db_table": 'core"."currency',
+            },
+            managers=[
+                ("objects", psqlextra.manager.manager.PostgresManager()),
+            ],
         ),
         migrations.CreateModel(
             name="InternationalExchange",
@@ -47,7 +53,9 @@ class Migration(migrations.Migration):
                 "verbose_name_plural": "International Exchanges",
                 "db_table": 'core"."international_exchange',
             },
-            managers=[("objects", psqlextra.manager.manager.PostgresManager()),],
+            managers=[
+                ("objects", psqlextra.manager.manager.PostgresManager()),
+            ],
         ),
         migrations.CreateModel(
             name="Sector",
@@ -56,8 +64,14 @@ class Migration(migrations.Migration):
                 ("last_modified", models.DateTimeField(auto_now=True)),
                 ("name", models.CharField(max_length=255, primary_key=True, serialize=False)),
             ],
-            options={"verbose_name": "Sector", "verbose_name_plural": "Sectors", "db_table": 'core"."sector',},
-            managers=[("objects", psqlextra.manager.manager.PostgresManager()),],
+            options={
+                "verbose_name": "Sector",
+                "verbose_name_plural": "Sectors",
+                "db_table": 'core"."sector',
+            },
+            managers=[
+                ("objects", psqlextra.manager.manager.PostgresManager()),
+            ],
         ),
         migrations.CreateModel(
             name="Symbol",
@@ -96,8 +110,14 @@ class Migration(migrations.Migration):
                 ("cik", models.CharField(max_length=20)),
                 ("currency", models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to="core.currency")),
             ],
-            options={"verbose_name": "Symbol", "verbose_name_plural": "Symbols", "db_table": 'core"."symbol',},
-            managers=[("objects", psqlextra.manager.manager.PostgresManager()),],
+            options={
+                "verbose_name": "Symbol",
+                "verbose_name_plural": "Symbols",
+                "db_table": 'core"."symbol',
+            },
+            managers=[
+                ("objects", psqlextra.manager.manager.PostgresManager()),
+            ],
         ),
         migrations.CreateModel(
             name="Tag",
@@ -106,8 +126,14 @@ class Migration(migrations.Migration):
                 ("last_modified", models.DateTimeField(auto_now=True)),
                 ("name", models.CharField(max_length=255, primary_key=True, serialize=False)),
             ],
-            options={"verbose_name": "Tag", "verbose_name_plural": "Tags", "db_table": 'core"."tag',},
-            managers=[("objects", psqlextra.manager.manager.PostgresManager()),],
+            options={
+                "verbose_name": "Tag",
+                "verbose_name_plural": "Tags",
+                "db_table": 'core"."tag',
+            },
+            managers=[
+                ("objects", psqlextra.manager.manager.PostgresManager()),
+            ],
         ),
         migrations.CreateModel(
             name="UsExchange",
@@ -127,7 +153,9 @@ class Migration(migrations.Migration):
                 "verbose_name_plural": "US Exchanges",
                 "db_table": 'core"."us_exchange',
             },
-            managers=[("objects", psqlextra.manager.manager.PostgresManager()),],
+            managers=[
+                ("objects", psqlextra.manager.manager.PostgresManager()),
+            ],
         ),
         migrations.CreateModel(
             name="IexSymbol",
@@ -151,7 +179,9 @@ class Migration(migrations.Migration):
                 "verbose_name_plural": "Iex supported symbols",
                 "db_table": 'core"."iex_symbol',
             },
-            managers=[("objects", psqlextra.manager.manager.PostgresManager()),],
+            managers=[
+                ("objects", psqlextra.manager.manager.PostgresManager()),
+            ],
         ),
         migrations.CreateModel(
             name="Option",
@@ -166,8 +196,14 @@ class Migration(migrations.Migration):
                 ),
                 ("dates", django.contrib.postgres.fields.ArrayField(base_field=models.DateField(), size=None)),
             ],
-            options={"verbose_name": "Option", "verbose_name_plural": "Options", "db_table": 'core"."option',},
-            managers=[("objects", psqlextra.manager.manager.PostgresManager()),],
+            options={
+                "verbose_name": "Option",
+                "verbose_name_plural": "Options",
+                "db_table": 'core"."option',
+            },
+            managers=[
+                ("objects", psqlextra.manager.manager.PostgresManager()),
+            ],
         ),
         migrations.CreateModel(
             name="MutualFundSymbol",
@@ -187,7 +223,9 @@ class Migration(migrations.Migration):
                 "verbose_name_plural": "Mutual Fund Symbols",
                 "db_table": 'core"."mutual_fund_symbol',
             },
-            managers=[("objects", psqlextra.manager.manager.PostgresManager()),],
+            managers=[
+                ("objects", psqlextra.manager.manager.PostgresManager()),
+            ],
         ),
         migrations.CreateModel(
             name="InternationalSymbol",
@@ -232,7 +270,9 @@ class Migration(migrations.Migration):
                 "verbose_name_plural": "International Symbols",
                 "db_table": 'core"."international_symbol',
             },
-            managers=[("objects", psqlextra.manager.manager.PostgresManager()),],
+            managers=[
+                ("objects", psqlextra.manager.manager.PostgresManager()),
+            ],
         ),
         migrations.CreateModel(
             name="CurrencyPair",
@@ -264,7 +304,9 @@ class Migration(migrations.Migration):
                 "verbose_name_plural": "Currency Pairs",
                 "db_table": 'core"."currency_pair',
             },
-            managers=[("objects", psqlextra.manager.manager.PostgresManager()),],
+            managers=[
+                ("objects", psqlextra.manager.manager.PostgresManager()),
+            ],
         ),
         migrations.CreateModel(
             name="Otc",
@@ -299,7 +341,13 @@ class Migration(migrations.Migration):
                 ("iex_id", models.CharField(max_length=20)),
                 ("currency", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="core.currency")),
             ],
-            options={"verbose_name": "OTC symbol", "verbose_name_plural": "OTC symbols", "db_table": 'core"."otc',},
-            managers=[("objects", psqlextra.manager.manager.PostgresManager()),],
+            options={
+                "verbose_name": "OTC symbol",
+                "verbose_name_plural": "OTC symbols",
+                "db_table": 'core"."otc',
+            },
+            managers=[
+                ("objects", psqlextra.manager.manager.PostgresManager()),
+            ],
         ),
     ]

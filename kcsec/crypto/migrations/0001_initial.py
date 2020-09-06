@@ -41,8 +41,14 @@ class Migration(migrations.Migration):
                 ("volume_1mth_usd", models.FloatField()),
                 ("price_usd", models.DecimalField(decimal_places=2, max_digits=100)),
             ],
-            options={"verbose_name": "Asset", "verbose_name_plural": "Assets", "db_table": 'crypto"."asset',},
-            managers=[("objects", psqlextra.manager.manager.PostgresManager()),],
+            options={
+                "verbose_name": "Asset",
+                "verbose_name_plural": "Assets",
+                "db_table": 'crypto"."asset',
+            },
+            managers=[
+                ("objects", psqlextra.manager.manager.PostgresManager()),
+            ],
         ),
         migrations.CreateModel(
             name="Exchange",
@@ -70,7 +76,9 @@ class Migration(migrations.Migration):
                 "verbose_name_plural": "Crypto currency exchanges",
                 "db_table": 'crypto"."exchange',
             },
-            managers=[("objects", psqlextra.manager.manager.PostgresManager()),],
+            managers=[
+                ("objects", psqlextra.manager.manager.PostgresManager()),
+            ],
         ),
         migrations.CreateModel(
             name="Symbol",
@@ -128,7 +136,13 @@ class Migration(migrations.Migration):
                 ),
                 ("exchange", models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to="crypto.exchange")),
             ],
-            options={"verbose_name": "Symbol", "verbose_name_plural": "Symbols", "db_table": 'crypto"."symbol',},
-            managers=[("objects", psqlextra.manager.manager.PostgresManager()),],
+            options={
+                "verbose_name": "Symbol",
+                "verbose_name_plural": "Symbols",
+                "db_table": 'crypto"."symbol',
+            },
+            managers=[
+                ("objects", psqlextra.manager.manager.PostgresManager()),
+            ],
         ),
     ]

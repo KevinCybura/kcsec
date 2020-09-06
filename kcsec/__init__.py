@@ -6,7 +6,10 @@ from dotenv import load_dotenv
 
 
 def configure(
-    databases=None, s3_storage_backend=False, skip_metrics=False, media_root="media",
+    databases=None,
+    s3_storage_backend=False,
+    skip_metrics=False,
+    media_root="media",
 ):
     LOGGING = {
         "version": 1,
@@ -15,11 +18,26 @@ def configure(
             "verbose": {"format": "%(levelname)s %(asctime)s %(pathname)s %(funcName)s \n%(message)s"},
             "simple": {"format": "%(levelname)s %(message)s"},
         },
-        "handlers": {"simple_console": {"class": "logging.StreamHandler", "level": "INFO", "formatter": "simple",}},
+        "handlers": {
+            "simple_console": {
+                "class": "logging.StreamHandler",
+                "level": "INFO",
+                "formatter": "simple",
+            }
+        },
         "loggers": {
-            "django": {"handlers": ["simple_console"], "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"),},
-            "django.db.backends": {"handlers": ["simple_console"], "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"),},
-            "kcsec": {"handlers": ["simple_console"], "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"),},
+            "django": {
+                "handlers": ["simple_console"],
+                "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"),
+            },
+            "django.db.backends": {
+                "handlers": ["simple_console"],
+                "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"),
+            },
+            "kcsec": {
+                "handlers": ["simple_console"],
+                "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"),
+            },
         },
     }
     if databases is None:
@@ -68,7 +86,8 @@ def configure(
         )
     else:
         file_backend_kwargs = dict(
-            DEFAULT_FILE_STORAGE="django.core.files.storage.FileSystemStorage", MEDIA_ROOT=media_root,
+            DEFAULT_FILE_STORAGE="django.core.files.storage.FileSystemStorage",
+            MEDIA_ROOT=media_root,
         )
     MIDDLEWARE = [
         "django_prometheus.middleware.PrometheusBeforeMiddleware",
@@ -107,7 +126,9 @@ def configure(
 
 def init(databases=None, s3_storage_backend=False, media_root="media"):
     configure(
-        databases=databases, s3_storage_backend=s3_storage_backend, media_root=media_root,
+        databases=databases,
+        s3_storage_backend=s3_storage_backend,
+        media_root=media_root,
     )
     django.setup()
 

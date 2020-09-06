@@ -14,11 +14,17 @@ class Symbol(BaseModel):
         CREDIT = "CREDIT"
 
     symbol_id = models.CharField(max_length=150, unique=True, primary_key=True)
-    exchange = models.ForeignKey("crypto.Exchange", on_delete=models.DO_NOTHING, null=True)
+    exchange = models.ForeignKey("crypto.Exchange", on_delete=models.DO_NOTHING, null=True, default="")
     symbol_type = models.CharField(max_length=10, choices=SymbolTypeChoices.choices)
-    asset_id_base = models.ForeignKey("crypto.Asset", related_name="base", on_delete=models.DO_NOTHING, null=True)
-    asset_id_quote = models.ForeignKey("crypto.Asset", related_name="quote", on_delete=models.DO_NOTHING, null=True)
-    asset_id_unit = models.ForeignKey("crypto.Asset", related_name="unit", on_delete=models.DO_NOTHING, null=True)
+    asset_id_base = models.ForeignKey(
+        "crypto.Asset", related_name="base", on_delete=models.DO_NOTHING, null=True, default=""
+    )
+    asset_id_quote = models.ForeignKey(
+        "crypto.Asset", related_name="quote", on_delete=models.DO_NOTHING, null=True, default=""
+    )
+    asset_id_unit = models.ForeignKey(
+        "crypto.Asset", related_name="unit", on_delete=models.DO_NOTHING, null=True, default=""
+    )
     data_start = models.DateField(null=True)
     data_end = models.DateField(null=True)
     data_quote_start = models.DateTimeField(null=True)

@@ -132,3 +132,4 @@ kcsec.egg-info
 kcsec/chat
 .data/
 staticfiles/
+media/

@@ -20,6 +20,7 @@ class Exchange(BaseModel):
     volume_1hrs_usd = models.FloatField(null=True)
     volume_1day_usd = models.FloatField(null=True)
     volume_1mth_usd = models.FloatField(null=True)
+    exchange_icon = models.ImageField(upload_to="images/crypto/", height_field=48, width_field=48, null=True)
 
     class Meta:
         db_table = crypto_entity("exchange")

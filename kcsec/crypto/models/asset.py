@@ -21,6 +21,7 @@ class Asset(BaseModel):
     volume_1day_usd = models.FloatField(null=True)
     volume_1mth_usd = models.FloatField(null=True)
     price_usd = models.DecimalField(decimal_places=5, max_digits=50, null=True)
+    asset_icon = models.ImageField(upload_to="images/crypto/", null=True)
 
     class Meta:
         db_table = crypto_entity("asset")

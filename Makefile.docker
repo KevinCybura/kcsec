@@ -1,0 +1,27 @@
+container = kcsec_web_1
+
+test:
+	docker exec -it $(contair) poetry run pytest
+
+fmt:
+	docker exec -it $(container) poetry run isort .
+	docker exec -it $(container) poetry run black .
+
+serve:
+	docker exec -it $(container) poetry run ./manage.py runserver
+
+dc-up:
+	docker start kcsec-db
+	docker-compose up redis web pushgateway minio
+
+superuser:
+	 docker exec -it $(container) poetry run ./manage.py createsuperuser
+
+migrate:
+	docker exec -it $(container) poetry run ./manage.py migrate
+
+migrations:
+	docker exec -it $(container) poetry run ./manage.py makemigrations
+
+bash:
+	docker exec -it $(container) bash

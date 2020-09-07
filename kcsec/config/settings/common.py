@@ -23,29 +23,32 @@ BASE_DIR = os.path.dirname(PACKAGE_DIR)
 SECRET_KEY = os.getenv("SECRET_KEY", "test-not-so-secret-key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv("DEBUG", False)
+DEBUG = os.getenv("DEBUG", True)
 
 ALLOWED_HOSTS = ["*"]
 
 # Application definition
 
 INSTALLED_APPS = [
+    "django.contrib.staticfiles",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
-    "django.contrib.staticfiles",
     "django.contrib.postgres",
     "django_extensions",
     "psqlextra",
+    "channels",
     "kcsec",
     "kcsec.core",
     "kcsec.crypto",
+    # "kcsec.chat",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -72,7 +75,11 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "kcsec.config.wsgi.application"
+# WSGI_APPLICATION = "kcsec.config.wsgi.application"
+ASGI_APPLICATION = "kcsec.config.routing.application"
+CHANNEL_LAYERS = {
+    "default": {"BACKEND": "channels_redis.core.RedisChannelLayer", "CONFIG": {"hosts": [("127.0.0.1", 6379)]}}
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators

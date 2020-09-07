@@ -129,3 +129,6 @@ dmypy.json
 .pyre/
 .idea
 kcsec.egg-info
+kcsec/chat
+.data/
+staticfiles/

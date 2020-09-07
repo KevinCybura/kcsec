@@ -27,3 +27,7 @@ migrations:
 	poetry run ./manage.py makemigrations
 
 db: dropdb createdb migrate
+
+dc-up:
+	docker start kcsec-db
+	docker-compose up web redis minio migrate-kcsec pushgateway

@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.html import mark_safe
 
 from kcsec.core.base import BaseModel
 from kcsec.crypto.models._meta import crypto_entity
@@ -27,3 +28,9 @@ class Asset(BaseModel):
         db_table = crypto_entity("asset")
         verbose_name = "Asset"
         verbose_name_plural = "Assets"
+
+    @property
+    def icon(self):
+        if self.asset_icon:
+            return mark_safe('<img src="{}" width="16" height="16" />'.format(self.asset_icon.url))
+        return ""

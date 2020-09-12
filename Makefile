@@ -28,6 +28,16 @@ migrations:
 
 db: dropdb createdb migrate
 
+dc-build:
+	docker-compose
+
+ # docker stuff
+build:
+	docker-compose build
+
+build-no-cache:
+	docker-compose build --no-cache
+
 dc-up:
 	docker start kcsec-db
 	docker-compose up web redis minio migrate-kcsec pushgateway

@@ -5,8 +5,14 @@ fmt:
 	poetry run isort .
 	poetry run black .
 
-serve:
+web:
 	poetry run ./manage.py runserver
+
+crypto_sockets:
+	poetry run ./manage.py ws_client
+
+serve:
+	poetry run honcho start
 
 superuser:
 	poetry run ./manage.py createsuperuser
@@ -41,3 +47,6 @@ build-no-cache:
 dc-up:
 	docker start kcsec-db
 	docker-compose up web redis minio migrate-kcsec pushgateway
+
+react:
+	cd kcsec/frontend && npm run dev

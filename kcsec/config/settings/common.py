@@ -38,7 +38,10 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.postgres",
     "django_extensions",
+    "bootstrap4",
     "psqlextra",
+    "corsheaders",
+    "rest_framework",
     "channels",
     "kcsec",
     "kcsec.core",
@@ -47,6 +50,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -56,8 +60,6 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
-
-ROOT_URLCONF = "kcsec.config.urls"
 
 TEMPLATES = [
     {
@@ -75,8 +77,61 @@ TEMPLATES = [
     },
 ]
 
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{levelname} {asctime} {module} {message}",
+            "style": "{",
+        },
+    },
+    "filters": {},
+    "handlers": {
+        "console": {"level": "INFO", "filters": [], "class": "logging.StreamHandler", "formatter": "verbose"},
+    },
+    "loggers": {
+        "": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "filters": [],
+            "propagate": True,
+        },
+        "django": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": True,
+        },
+        "django.request": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": True,
+        },
+        "kcsec": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "filters": [],
+            "propagate": False,
+        },
+        "kcsec.core": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "filters": [],
+            "propagate": False,
+        },
+        "kcsec.crypto": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "filters": [],
+            "propagate": False,
+        },
+    },
+}
+
+ROOT_URLCONF = "kcsec.config.urls"
 # WSGI_APPLICATION = "kcsec.config.wsgi.application"
 ASGI_APPLICATION = "kcsec.config.routing.application"
+
 CHANNEL_LAYERS = {
     "default": {"BACKEND": "channels_redis.core.RedisChannelLayer", "CONFIG": {"hosts": [("127.0.0.1", 6379)]}}
 }
@@ -120,3 +175,5 @@ STATIC_URL = "/static/"
 STATIC_ROOT = Path(BASE_DIR, "staticfiles")
 
 MEDIA_ROOT = Path(BASE_DIR, "media")
+
+REST_FRAMEWORK = {"DEFAULT_RENDERER_CLASSES": ("rest_framework.renderers.JSONRenderer",)}

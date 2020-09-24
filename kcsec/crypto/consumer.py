@@ -8,11 +8,11 @@ logger = logging.getLogger(__name__)
 
 
 class CoinConsumer(AsyncJsonWebsocketConsumer):
-    coin_cache = {
-        "BTCUSD": {"messages": []},
-        "ETHUSD": {"messages": []},
-        "LTCUSD": {"messages": []},
-    }
+    coin_cache = [
+        "BTCUSD",
+        "ETHUSD",
+        "LTCUSD",
+    ]
     groups = ["crypto"]
 
     async def connect(self):
@@ -20,20 +20,18 @@ class CoinConsumer(AsyncJsonWebsocketConsumer):
 
     async def receive_json(self, content, **kwargs):
         message = content
-        # logger.info(content)
 
+        # TODO cache messages in redis.
         coins = {}
-        logger.info("HERE")
-        for coin, data in self.coin_cache.items():
+        for coin in self.coin_cache:
             if coin in message["coins"]:
-                coins[coin] = data.get("ohlcv", [])
+                coins[coin] = {}
 
         await self.send(json.dumps({"message": coins}))
 
     async def crypto_update(self, event):
         message = json.loads(event["message"])
 
-        # logger.info(message)
         if message["type"] == "heartbeat":
             return
         ohlcv = [
@@ -50,14 +48,6 @@ class CoinConsumer(AsyncJsonWebsocketConsumer):
         ]
         ohlcv.reverse()
 
-        if isinstance(ohlcv, list):
-            self.coin_cache[message["symbol"]]["ohlcv"] = ohlcv
-        else:
-            self.coin_cache[message["symbol"]]["ohlcv"].append(ohlcv)
-        self.coin_cache[message["symbol"]]["messages"].append(message)
-
-        # ohlcv =  [{'time': 1600550160, 'open': 11087, 'high': 11087, 'low': 11087, 'close': 11087, 'volume': 0}]
         to_send = {message["symbol"]: {"ohlcv": ohlcv}}
-        print(to_send)
 
         await self.send_json({"message": to_send})

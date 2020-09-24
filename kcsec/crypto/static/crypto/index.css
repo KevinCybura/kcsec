@@ -1,0 +1,14 @@
+.coin-card {
+    width: 70%;
+    height: 50%;
+    margin: 1rem 0 1rem 5rem;
+    background-color: mediumaquamarine;
+}
+
+.coin-body {
+    position: relative;
+    width: 90%;
+    height: 90%;
+    padding-bottom: 50%;
+    padding-right: 2rem;
+}

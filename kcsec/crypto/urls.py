@@ -1,5 +1,8 @@
 from django.urls import path
 
-from kcsec.crypto.views import index
+from kcsec.crypto import views
 
-urlpatterns = [path("", index, name="index")]
+urlpatterns = [
+    path("", views.CoinView.as_view(), name="index"),
+    path("<str:coin>", views.CoinView.as_view(), name="coin"),
+]

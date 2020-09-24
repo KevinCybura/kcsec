@@ -21,6 +21,6 @@ from django.urls import path
 
 urlpatterns = [
     # path("chat/", include("kcsec.chat.urls")),
-    path("crypto", include("kcsec.crypto.urls")),
+    path("crypto/", include("kcsec.crypto.urls")),
     path("admin/", admin.site.urls),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -20,6 +20,7 @@ djangorestframework = "^3.11.1"
 markdown = "^3.2.2"
 django-bootstrap4 = "^2.2.0"
 websockets = "^8.1"
+django-cors-headers = "^3.5.0"
 
 [tool.poetry.dev-dependencies]
 isort = "^5.5.1"

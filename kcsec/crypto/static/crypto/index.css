@@ -1,8 +1,12 @@
+body {
+    background-color: grey;
+}
+
 .coin-card {
     width: 70%;
     height: 50%;
     margin: 1rem 0 1rem 5rem;
-    background-color: mediumaquamarine;
+    background-color: cadetblue;
 }
 
 .coin-body {

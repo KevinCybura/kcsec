@@ -1,25 +1,36 @@
+const preloaded_ohlcv = JSON.parse(
+  document.getElementById("preloaded-ohlcv").textContent
+);
 const cards = Array.from(document.getElementsByClassName("coin-body"));
-let charts = cards.map(create_chart);
+
 let coins = cards.map((card) => card.getAttribute("ws-coin"));
+let charts = cards.map(create_chart);
+
 const socket = new WebSocket("ws://" + window.location.host + "/ws/crypto/");
-socket.onopen = function (e) {
-  socket.send(
-    JSON.stringify({
-      coins: coins,
-    })
-  );
-};
+
+let chart_info = {};
+charts.forEach((chart) => {
+  const candlestickSeries = chart.addCandlestickSeries();
+  candlestickSeries.setData(preloaded_ohlcv[chart.name]);
+
+  const areaSeries = chart.addAreaSeries();
+  areaSeries.setData(preloaded_ohlcv[chart.name]);
+
+  chart_info[chart.name] = {
+    candle_stick_series: candlestickSeries,
+    area_series: areaSeries,
+  };
+});
+
+socket.onopen = function (e) {};
 
 socket.onmessage = function (e) {
   const message = JSON.parse(e.data)["message"];
-  charts.forEach((chart) => {
-    const ohlcv = message[chart.name];
-    if (ohlcv) {
-      const ohlcv2 = ohlcv["ohlcv"] || [];
-      const candlestickSeries = chart.addCandlestickSeries();
-      candlestickSeries.setData(ohlcv2);
-      const areaSeries = chart.addAreaSeries();
-      areaSeries.setData(ohlcv2);
+  Object.keys(message).forEach((coin) => {
+    if (coin in chart_info) {
+      const coin_data = message[coin]["ohlcv"];
+      chart_info[coin]["candle_stick_series"].update(coin_data[0]);
+      chart_info[coin]["area_series"].update(coin_data[0]);
     }
   });
 };
@@ -50,8 +61,25 @@ function create_chart(card) {
     height: card.height,
   });
   chart.applyOptions({
+    priceScale: {
+      autoScale: true,
+      borderVisible: true,
+      entireTextOnly: true,
+      borderColor: "cadetblue",
+      drawTicks: false,
+      scaleMargins: {
+        top: 0.3,
+        bottom: 0.25,
+      },
+    },
+    layout: {
+      backgroundColor: "#FAEBD7",
+      textColor: "#696969",
+      fontSize: 12,
+      fontFamily: "Calibri",
+    },
     timeScale: {
-      rightOffset: 12,
+      rightOffset: 100,
       barSpacing: 3,
       fixLeftEdge: true,
       lockVisibleTimeRangeOnResize: true,
@@ -62,11 +90,20 @@ function create_chart(card) {
       timeVisible: true,
       secondsVisible: false,
     },
+    grid: {
+      vertLines: {
+        color: "rgba(70, 130, 180, 0.5)",
+        style: 2,
+        visible: true,
+      },
+      horzLines: {
+        color: "rgba(70, 130, 180, 0.5)",
+        style: 2,
+        visible: true,
+      },
+    },
   });
-  const candlestickSeries = chart.addCandlestickSeries();
-  candlestickSeries.setData([]);
-  const areaSeries = chart.addAreaSeries();
-  areaSeries.setData([]);
+
   chart.name = card.getAttribute("ws-coin");
   return chart;
 }

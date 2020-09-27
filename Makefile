@@ -11,9 +11,6 @@ web:
 crypto_sockets:
 	poetry run ./manage.py ws_client
 
-serve:
-	poetry run honcho start
-
 superuser:
 	poetry run ./manage.py createsuperuser
 
@@ -32,7 +29,10 @@ migrate:
 migrations:
 	poetry run ./manage.py makemigrations
 
-db: dropdb createdb migrate
+seeds:
+	poetry run ./manage.py crypto_seeds
+
+db: dropdb createdb migrate seeds
 
 dc-build:
 	docker-compose
@@ -47,6 +47,3 @@ build-no-cache:
 dc-up:
 	docker start kcsec-db
 	docker-compose up web redis minio migrate-kcsec pushgateway
-
-react:
-	cd kcsec/frontend && npm run dev

@@ -46,7 +46,6 @@ class Migration(migrations.Migration):
                 "verbose_name": "Open High Low Close Volume",
                 "verbose_name_plural": "Open High Low Close Volume",
                 "db_table": 'crypto"."ohlcv',
-                "unique_together": {("time_period_start", "time_period_end")},
             },
             managers=[
                 ("objects", psqlextra.manager.manager.PostgresManager()),

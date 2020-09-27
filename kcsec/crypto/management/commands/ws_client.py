@@ -1,13 +1,18 @@
 import asyncio
 import json
 import logging
+from datetime import datetime
+from typing import Dict
+from typing import List
 
 import websockets
+from channels.db import database_sync_to_async
 from channels.layers import get_channel_layer
-from django.core.cache import cache
 from django.core.management.base import BaseCommand
-from django_redis import get_redis_connection
+from django.utils.timezone import utc
 from websockets.exceptions import InvalidMessage
+
+from kcsec.crypto.models import Ohlcv
 
 logger = logging.getLogger(__name__)
 
@@ -27,8 +32,6 @@ class Command(BaseCommand):
                 # {"name": "candles_5m", "symbols": self.crypto_currencies},
             ],
         }
-
-        self.redis = get_redis_connection("default")
 
         loop = asyncio.get_event_loop()
         loop.run_until_complete(self.connect(self.gemini_url, params))
@@ -50,6 +53,45 @@ class Command(BaseCommand):
 
         logger.info(message)
 
+        if message_dict["type"] == "heartbeat":
+            return
+
+        message_dict["changes"] = self._convert(message_dict["changes"])
+
+        self._store_ohlcv(message_dict, exchange_id="gemini")
+
         channel_layer = get_channel_layer()
-        # self.redis.
-        await channel_layer.group_send("crypto", {"type": "crypto_update", "message": message})
+        await channel_layer.group_send("crypto", {"type": "crypto_update", "message": json.dumps(message_dict)})
+
+    @classmethod
+    def _convert(cls, changes: List[List[float]]) -> List[dict]:
+        return [
+            {
+                "time": datetime.fromtimestamp(change[0] / 1000).timestamp(),
+                "open": change[1],
+                "high": change[2],
+                "low": change[3],
+                "close": change[4],
+                "volume": change[5],
+                "value": (change[2] + change[3]) / 2,
+            }
+            for change in changes[-1:0:-1]
+        ]
+
+    @database_sync_to_async
+    def _store_ohlcv(self, message: Dict[str, dict], exchange_id: str = "gemini") -> None:
+        objs = [
+            Ohlcv(
+                exchange_id=exchange_id,
+                asset_id_base_id=message["symbol"][:3],
+                asset_id_quote_id=message["symbol"][3:],
+                time_open=datetime.fromtimestamp(change["time"], tz=utc),
+                open=change["open"],
+                high=change["high"],
+                low=change["low"],
+                close=change["close"],
+                volume=change["volume"],
+            )
+            for change in message["changes"]
+        ]
+        Ohlcv.objects.bulk_create(objs, ignore_conflicts=True)

@@ -22,6 +22,7 @@ django-bootstrap4 = "^2.2.0"
 websockets = "^8.1"
 django-cors-headers = "^3.5.0"
 django-redis = "^4.12.1"
+simplejson = "^3.17.2"
 
 [tool.poetry.dev-dependencies]
 isort = "^5.5.1"
@@ -30,6 +31,7 @@ black = "^20.8b1"
 selenium = "^3.141.0"
 pytest-django = "^3.9.0"
 coverage = "^5.2.1"
+factory-boy = "^3.0.1"
 
 [tool.isort]
 force_single_line = true

@@ -1,32 +1,52 @@
-<!DOCTYPE html>
-<html lang="en" xmlns="http://www.w3.org/1999/html">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Title</title>
-</head>
-<body>
-
-
-{% for coin in coins %}
-    <div class="card coin-card" >
-    <div class="card-body">
-        <h5 class="card-title">{{ coin }}</h5>
-        <p class="card-text" id="ws-{{ coin }}"></p>
-        <div class="card-body coin-body" id="coin-card-{{ coin }}" ws-coin="{{ coin }}"></div>
-    </div>
-    </div>
-{% endfor %}
-
-{% load bootstrap4 %}
-{% bootstrap_css %}
-{% bootstrap_javascript jquery="full" %}
-{% bootstrap_messages %}
+{% extends "crypto/base.html" %}
 
 {% load static %}
-<link rel="stylesheet" href="{% static 'crypto/index.css' %}">
-<script src="https://unpkg.com/lightweight-charts@3.1.5/dist/lightweight-charts.standalone.production.js"></script>
-<script src="{% static 'crypto/chart.js' %}"></script>
 
-</body>
-</html>
+{% block nav-content %}
+    {% if current_nav == "Home" %}
+        <li class="nav-item active">
+            <a class="nav-link" href="{% url 'coin' %}">{{ current_nav }} <span
+                    class="sr-only">(current)</span></a>
+        </li>
+    {% else %}
+        <li class="nav-item active">
+            <a class="nav-link" href="{% url 'coin' %}">{{ "Home" }}</a>
+        </li>
+    {% endif %}
+
+    {% for coin in navs %}
+        {% ifequal current_nav coin %}
+            <li class="nav-item active">
+                <a class="nav-link" href="{% url 'coin' current_nav %}">{{ current_nav }} <span
+                        class="sr-only">(current)</span></a>
+            </li>
+
+        {% else %}
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'coin' coin %}">{{ coin }}</a>
+            </li>
+        {% endifequal %}
+
+    {% endfor %}
+{% endblock %}
+
+
+{% block content %}
+
+    {% for coin in coins %}
+        <div class="card coin-card">
+            <div class="card-body">
+                <h5 class="card-title">{{ coin }}</h5>
+                <p class="card-text" id="ws-{{ coin }}"></p>
+                <div class="card-body coin-body" id="coin-card-{{ coin }}" ws-coin="{{ coin }}"></div>
+            </div>
+        </div>
+    {% endfor %}
+
+
+    {{ preloaded_coins|json_script:"preloaded-ohlcv" }}
+    <link rel="stylesheet" href="{% static 'crypto/index.css' %}">
+    <script src="https://unpkg.com/lightweight-charts@3.1.5/dist/lightweight-charts.standalone.production.js"></script>
+    <script src="{% static 'crypto/chart.js' %}"></script>
+{% endblock %}
+

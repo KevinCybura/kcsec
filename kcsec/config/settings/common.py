@@ -46,7 +46,7 @@ INSTALLED_APPS = [
     "kcsec",
     "kcsec.core",
     "kcsec.crypto",
-    # "kcsec.chat",
+    "kcsec.securities",
 ]
 
 MIDDLEWARE = [
@@ -64,7 +64,6 @@ MIDDLEWARE = [
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -187,3 +186,5 @@ CACHES = {
         },
     }
 }
+
+LOGIN_REDIRECT_URL = "/crypto/"

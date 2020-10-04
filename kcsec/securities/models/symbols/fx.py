@@ -1,7 +1,7 @@
 from django.db import models
 
 from kcsec.core.base import BaseModel
-from kcsec.core.models._meta import core_entity
+from kcsec.securities.models._meta import securities_entity
 
 
 class Currency(BaseModel):
@@ -9,7 +9,7 @@ class Currency(BaseModel):
     name = models.CharField(max_length=50)
 
     class Meta:
-        db_table = core_entity("currency")
+        db_table = securities_entity("currency")
         verbose_name = "Currency"
         verbose_name_plural = "Currencies"
 
@@ -20,6 +20,6 @@ class CurrencyPair(BaseModel):
     to_currency = models.ForeignKey(Currency, related_name="to_currency", on_delete=models.CASCADE, max_length=10)
 
     class Meta:
-        db_table = core_entity("currency_pair")
+        db_table = securities_entity("currency_pair")
         verbose_name = "Currency Pair"
         verbose_name_plural = "Currency Pairs"

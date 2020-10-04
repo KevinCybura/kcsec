@@ -1,7 +1,7 @@
 from django.db import models
 
 from kcsec.core.base import BaseModel
-from kcsec.core.models._meta import core_entity
+from kcsec.securities.models._meta import securities_entity
 
 
 class InternationalExchange(BaseModel):
@@ -12,7 +12,7 @@ class InternationalExchange(BaseModel):
     exchange_suffix = models.CharField(max_length=10)
 
     class Meta:
-        db_table = core_entity("international_exchange")
+        db_table = securities_entity("international_exchange")
         verbose_name = "International Exchange"
         verbose_name_plural = "International Exchanges"
 
@@ -27,6 +27,6 @@ class UsExchange(BaseModel):
     type = models.CharField(max_length=10)
 
     class Meta:
-        db_table = core_entity("us_exchange")
+        db_table = securities_entity("us_exchange")
         verbose_name = "US Exchange"
         verbose_name_plural = "US Exchanges"

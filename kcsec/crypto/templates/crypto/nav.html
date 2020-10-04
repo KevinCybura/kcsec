@@ -1,0 +1,30 @@
+{% load static %}
+
+{% block nav-content %}
+    {% if current_nav == "Home" %}
+        <li class="nav-item active">
+            <a class="nav-link" href="{% url 'coin' %}">{{ current_nav }}
+                <span class="sr-only">(current)</span>
+            </a>
+        </li>
+    {% else %}
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'coin' %}">{{ "Home" }}</a>
+        </li>
+    {% endif %}
+
+    {% for coin in navs %}
+        {% ifequal current_nav coin %}
+            <li class="nav-item active">
+                <a class="nav-link" href="{% url 'coin' current_nav %}">{{ current_nav }} <span
+                        class="sr-only">(current)</span></a>
+            </li>
+
+        {% else %}
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'coin' coin %}">{{ coin }}</a>
+            </li>
+        {% endifequal %}
+
+    {% endfor %}
+{% endblock %}

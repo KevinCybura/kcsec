@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunSQL(
             """
-            CREATE SCHEMA core;  
+            CREATE SCHEMA securities;  
             """,
             reverse_sql=migrations.RunSQL.noop,
         ),
@@ -31,7 +31,7 @@ class Migration(migrations.Migration):
             options={
                 "verbose_name": "Currency",
                 "verbose_name_plural": "Currencies",
-                "db_table": 'core"."currency',
+                "db_table": 'securities"."currency',
             },
             managers=[
                 ("objects", psqlextra.manager.manager.PostgresManager()),
@@ -51,7 +51,7 @@ class Migration(migrations.Migration):
             options={
                 "verbose_name": "International Exchange",
                 "verbose_name_plural": "International Exchanges",
-                "db_table": 'core"."international_exchange',
+                "db_table": 'securities"."international_exchange',
             },
             managers=[
                 ("objects", psqlextra.manager.manager.PostgresManager()),
@@ -67,7 +67,7 @@ class Migration(migrations.Migration):
             options={
                 "verbose_name": "Sector",
                 "verbose_name_plural": "Sectors",
-                "db_table": 'core"."sector',
+                "db_table": 'securities"."sector',
             },
             managers=[
                 ("objects", psqlextra.manager.manager.PostgresManager()),
@@ -108,12 +108,15 @@ class Migration(migrations.Migration):
                 ("iex_id", models.CharField(max_length=20)),
                 ("figi", models.CharField(max_length=25)),
                 ("cik", models.CharField(max_length=20)),
-                ("currency", models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to="core.currency")),
+                (
+                    "currency",
+                    models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to="securities.currency"),
+                ),
             ],
             options={
                 "verbose_name": "Symbol",
                 "verbose_name_plural": "Symbols",
-                "db_table": 'core"."symbol',
+                "db_table": 'securities"."symbol',
             },
             managers=[
                 ("objects", psqlextra.manager.manager.PostgresManager()),
@@ -129,7 +132,7 @@ class Migration(migrations.Migration):
             options={
                 "verbose_name": "Tag",
                 "verbose_name_plural": "Tags",
-                "db_table": 'core"."tag',
+                "db_table": 'securities"."tag',
             },
             managers=[
                 ("objects", psqlextra.manager.manager.PostgresManager()),
@@ -151,7 +154,7 @@ class Migration(migrations.Migration):
             options={
                 "verbose_name": "US Exchange",
                 "verbose_name_plural": "US Exchanges",
-                "db_table": 'core"."us_exchange',
+                "db_table": 'securities"."us_exchange',
             },
             managers=[
                 ("objects", psqlextra.manager.manager.PostgresManager()),
@@ -168,7 +171,7 @@ class Migration(migrations.Migration):
                         on_delete=django.db.models.deletion.DO_NOTHING,
                         primary_key=True,
                         serialize=False,
-                        to="core.symbol",
+                        to="securities.symbol",
                     ),
                 ),
                 ("date", models.DateField()),
@@ -177,7 +180,7 @@ class Migration(migrations.Migration):
             options={
                 "verbose_name": "Iex supported symbol",
                 "verbose_name_plural": "Iex supported symbols",
-                "db_table": 'core"."iex_symbol',
+                "db_table": 'securities"."iex_symbol',
             },
             managers=[
                 ("objects", psqlextra.manager.manager.PostgresManager()),
@@ -191,7 +194,10 @@ class Migration(migrations.Migration):
                 (
                     "symbol",
                     models.OneToOneField(
-                        on_delete=django.db.models.deletion.CASCADE, primary_key=True, serialize=False, to="core.symbol"
+                        on_delete=django.db.models.deletion.CASCADE,
+                        primary_key=True,
+                        serialize=False,
+                        to="securities.symbol",
                     ),
                 ),
                 ("dates", django.contrib.postgres.fields.ArrayField(base_field=models.DateField(), size=None)),
@@ -199,7 +205,7 @@ class Migration(migrations.Migration):
             options={
                 "verbose_name": "Option",
                 "verbose_name_plural": "Options",
-                "db_table": 'core"."option',
+                "db_table": 'securities"."option',
             },
             managers=[
                 ("objects", psqlextra.manager.manager.PostgresManager()),
@@ -216,12 +222,12 @@ class Migration(migrations.Migration):
                 ("type", models.CharField(choices=[("oef", "oef"), ("cef", "cef")], max_length=4)),
                 ("region", models.CharField(max_length=20)),
                 ("iex_id", models.CharField(max_length=25)),
-                ("currency", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="core.currency")),
+                ("currency", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="securities.currency")),
             ],
             options={
                 "verbose_name": "Mutual Fund Symbol",
                 "verbose_name_plural": "Mutual Fund Symbols",
-                "db_table": 'core"."mutual_fund_symbol',
+                "db_table": 'securities"."mutual_fund_symbol',
             },
             managers=[
                 ("objects", psqlextra.manager.manager.PostgresManager()),
@@ -259,16 +265,18 @@ class Migration(migrations.Migration):
                 ),
                 ("region", models.CharField(max_length=20)),
                 ("iex_id", models.CharField(max_length=25)),
-                ("currency", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="core.currency")),
+                ("currency", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="securities.currency")),
                 (
                     "exchange",
-                    models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="core.internationalexchange"),
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="securities.internationalexchange"
+                    ),
                 ),
             ],
             options={
                 "verbose_name": "International Symbol",
                 "verbose_name_plural": "International Symbols",
-                "db_table": 'core"."international_symbol',
+                "db_table": 'securities"."international_symbol',
             },
             managers=[
                 ("objects", psqlextra.manager.manager.PostgresManager()),
@@ -286,7 +294,7 @@ class Migration(migrations.Migration):
                         max_length=10,
                         on_delete=django.db.models.deletion.CASCADE,
                         related_name="from_currency",
-                        to="core.currency",
+                        to="securities.currency",
                     ),
                 ),
                 (
@@ -295,14 +303,14 @@ class Migration(migrations.Migration):
                         max_length=10,
                         on_delete=django.db.models.deletion.CASCADE,
                         related_name="to_currency",
-                        to="core.currency",
+                        to="securities.currency",
                     ),
                 ),
             ],
             options={
                 "verbose_name": "Currency Pair",
                 "verbose_name_plural": "Currency Pairs",
-                "db_table": 'core"."currency_pair',
+                "db_table": 'securities"."currency_pair',
             },
             managers=[
                 ("objects", psqlextra.manager.manager.PostgresManager()),
@@ -316,7 +324,10 @@ class Migration(migrations.Migration):
                 (
                     "symbol",
                     models.OneToOneField(
-                        on_delete=django.db.models.deletion.CASCADE, primary_key=True, serialize=False, to="core.symbol"
+                        on_delete=django.db.models.deletion.CASCADE,
+                        primary_key=True,
+                        serialize=False,
+                        to="securities.symbol",
                     ),
                 ),
                 ("name", models.CharField(max_length=255)),
@@ -339,12 +350,12 @@ class Migration(migrations.Migration):
                 ),
                 ("region", models.CharField(max_length=25)),
                 ("iex_id", models.CharField(max_length=20)),
-                ("currency", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="core.currency")),
+                ("currency", models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to="securities.currency")),
             ],
             options={
                 "verbose_name": "OTC symbol",
                 "verbose_name_plural": "OTC symbols",
-                "db_table": 'core"."otc',
+                "db_table": 'securities"."otc',
             },
             managers=[
                 ("objects", psqlextra.manager.manager.PostgresManager()),

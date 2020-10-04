@@ -6,8 +6,6 @@ const cards = Array.from(document.getElementsByClassName("coin-body"));
 let coins = cards.map((card) => card.getAttribute("ws-coin"));
 let charts = cards.map(create_chart);
 
-const socket = new WebSocket("ws://" + window.location.host + "/ws/crypto/");
-
 let chart_info = {};
 charts.forEach((chart) => {
   const candlestickSeries = chart.addCandlestickSeries();
@@ -21,6 +19,8 @@ charts.forEach((chart) => {
     area_series: areaSeries,
   };
 });
+
+const socket = new WebSocket("ws://" + window.location.host + "/ws/crypto/");
 
 socket.onopen = function (e) {};
 
@@ -54,7 +54,9 @@ function create_chart(card) {
   let chart_card = document.createElement("div");
   chart_card.id = "coin-chart-" + card.getAttribute("ws-coin");
 
-  chart_card.style = "position: absolute; width: 100%; height: 90%;";
+  // chart_card.style = "position: absolute";
+  // chart_card.style = "width: 100%; height: 95%;";
+  chart_card.style = "position: absolute; width: 100%; height: 100%;";
   card.appendChild(chart_card);
   let chart = LightweightCharts.createChart(chart_card, {
     width: card.width,

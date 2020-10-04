@@ -4,6 +4,7 @@ import logging
 from datetime import datetime
 from typing import Dict
 from typing import List
+from urllib.parse import urlencode
 
 import websockets
 from channels.db import database_sync_to_async
@@ -20,9 +21,8 @@ logger = logging.getLogger(__name__)
 class Command(BaseCommand):
     help = "Connect to websocket"
     crypto_currencies = ["BTCUSD", "ETHUSD", "LTCUSD"]
-    gemini_url = "wss://api.gemini.com/v2/marketdata"
-    binance_base = "wss://stream.binance.com:9443/ws/btcusdc@ticker/ws/"
-    binance_endpoints = ["btcusdc@ticker"]
+    l1_data = "wss://api.gemini.com/{version}/marketdata/{symbol}"
+    candle_stick_url = "wss://api.gemini.com/v2/marketdata"
 
     def handle(self, *args, **options) -> None:
         params = {
@@ -34,13 +34,14 @@ class Command(BaseCommand):
         }
 
         loop = asyncio.get_event_loop()
-        loop.run_until_complete(self.connect(self.gemini_url, params))
+        loop.run_until_complete(self.connect(self.candle_stick_url, params))
         loop.run_forever()
 
-    async def connect(self, url: str, params: dict) -> None:
+    async def connect(self, url: str, params: dict = None) -> None:
         async with websockets.connect(url) as ws:
-            params = json.dumps(params)
-            await ws.send(params)
+            if params is not None:
+                params = json.dumps(params)
+                await ws.send(params)
 
             async for message in ws:
                 await self.handle_message(message)
@@ -48,26 +49,25 @@ class Command(BaseCommand):
     async def handle_message(self, message: str) -> None:
         message_dict = json.loads(message)
 
+        logger.info(message)
         if message_dict.get("result") == "error":
             raise InvalidMessage(message)
-
-        logger.info(message)
 
         if message_dict["type"] == "heartbeat":
             return
 
         message_dict["changes"] = self._convert(message_dict["changes"])
 
-        self._store_ohlcv(message_dict, exchange_id="gemini")
+        await self._store_ohlcv(message_dict, exchange_id="gemini")
 
         channel_layer = get_channel_layer()
         await channel_layer.group_send("crypto", {"type": "crypto_update", "message": json.dumps(message_dict)})
 
     @classmethod
-    def _convert(cls, changes: List[List[float]]) -> List[dict]:
+    def _convert(cls, changes: List[List[float]]) -> List[Dict]:
         return [
             {
-                "time": datetime.fromtimestamp(change[0] / 1000).timestamp(),
+                "time": change[0] / 1000,
                 "open": change[1],
                 "high": change[2],
                 "low": change[3],
@@ -75,7 +75,7 @@ class Command(BaseCommand):
                 "volume": change[5],
                 "value": (change[2] + change[3]) / 2,
             }
-            for change in changes[-1:0:-1]
+            for change in changes[::-1]
         ]
 
     @database_sync_to_async
@@ -95,3 +95,4 @@ class Command(BaseCommand):
             for change in message["changes"]
         ]
         Ohlcv.objects.bulk_create(objs, ignore_conflicts=True)
+

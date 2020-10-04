@@ -20,7 +20,9 @@ from django.contrib import admin
 from django.urls import path
 
 urlpatterns = [
-    # path("chat/", include("kcsec.chat.urls")),
+    path("", include("kcsec.core.urls")),
     path("crypto/", include("kcsec.crypto.urls")),
     path("admin/", admin.site.urls),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]
+
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

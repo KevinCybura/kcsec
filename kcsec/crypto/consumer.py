@@ -2,11 +2,8 @@ import logging
 
 import simplejson as json
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
-from django_redis import get_redis_connection
 
 logger = logging.getLogger(__name__)
-
-r = get_redis_connection("default")
 
 
 class CoinConsumer(AsyncJsonWebsocketConsumer):

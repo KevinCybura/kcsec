@@ -1,38 +1,33 @@
-const preloaded_ohlcv = JSON.parse(
-  document.getElementById("preloaded-ohlcv").textContent
-);
-const cards = Array.from(document.getElementsByClassName("coin-body"));
+const cards = Array.from(document.getElementsByClassName("chart"));
 
-let coins = cards.map((card) => card.getAttribute("ws-coin"));
+let coins = cards.map((card) => card.getAttribute("ws-symbol"));
 let charts = cards.map(create_chart);
 
-let chart_info = {};
-charts.forEach((chart) => {
-  const candlestickSeries = chart.addCandlestickSeries();
-  candlestickSeries.setData(preloaded_ohlcv[chart.name]);
-
-  const areaSeries = chart.addAreaSeries();
-  areaSeries.setData(preloaded_ohlcv[chart.name]);
-
-  chart_info[chart.name] = {
-    candle_stick_series: candlestickSeries,
-    area_series: areaSeries,
-  };
-});
+const chart_info = {};
+for (const chart of charts) {
+  chart_info[chart.name] = build_chart(chart);
+}
 
 const socket = new WebSocket("ws://" + window.location.host + "/ws/crypto/");
 
 socket.onopen = function (e) {};
 
-socket.onmessage = function (e) {
+socket.onmessage = async function (e) {
   const message = JSON.parse(e.data)["message"];
-  Object.keys(message).forEach((coin) => {
+  const keys = Object.keys(message);
+  for (const coin of keys) {
     if (coin in chart_info) {
       const coin_data = message[coin]["ohlcv"];
-      chart_info[coin]["candle_stick_series"].update(coin_data[0]);
-      chart_info[coin]["area_series"].update(coin_data[0]);
+      const chart = await chart_info[coin];
+      if (coin_data.length === 1) {
+        chart["candle_stick_series"].update(coin_data[0]);
+        chart["area_series"].update(coin_data[0]);
+      } else {
+        chart["candle_stick_series"].setData(coin_data);
+        chart["area_series"].setData(coin_data);
+      }
     }
-  });
+  }
 };
 
 socket.onclose = function (_) {
@@ -41,10 +36,10 @@ socket.onclose = function (_) {
 
 $(window).resize(function () {
   charts.forEach((chart) => {
-    const coin_body = $(".coin-body");
+    const coin_body = $(".chart-body");
     chart.applyOptions({
       width: coin_body.innerWidth(),
-      height: coin_body.innerHeight() * 0.9,
+      height: coin_body.innerHeight(),
     });
     chart.timeScale().scrollToRealTime();
   });
@@ -52,11 +47,8 @@ $(window).resize(function () {
 
 function create_chart(card) {
   let chart_card = document.createElement("div");
-  chart_card.id = "coin-chart-" + card.getAttribute("ws-coin");
+  chart_card.id = "chart-" + card.getAttribute("ws-symbol");
 
-  // chart_card.style = "position: absolute";
-  // chart_card.style = "width: 100%; height: 95%;";
-  chart_card.style = "position: absolute; width: 100%; height: 100%;";
   card.appendChild(chart_card);
   let chart = LightweightCharts.createChart(chart_card, {
     width: card.width,
@@ -106,6 +98,27 @@ function create_chart(card) {
     },
   });
 
-  chart.name = card.getAttribute("ws-coin");
+  chart.name = card.getAttribute("ws-symbol");
   return chart;
+}
+
+async function build_chart(chart) {
+  const response = await fetch("http://localhost:8000/crypto/chart_data/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ symbol: chart.name }),
+  }).catch((e) => {
+    console.error(e);
+  });
+  const coin_data = await response.json();
+  const candlestickSeries = chart.addCandlestickSeries();
+  candlestickSeries.setData(coin_data);
+
+  const areaSeries = chart.addAreaSeries();
+  areaSeries.setData(coin_data);
+
+  return {
+    candle_stick_series: candlestickSeries,
+    area_series: areaSeries,
+  };
 }

@@ -61,7 +61,7 @@ class Command(BaseCommand):
         await self._store_ohlcv(message_dict, exchange_id="gemini")
 
         channel_layer = get_channel_layer()
-        await channel_layer.group_send("crypto", {"type": "crypto_update", "message": json.dumps(message_dict)})
+        await channel_layer.group_send("crypto", {"type": "crypto_chart_data", "message": json.dumps(message_dict)})
 
     @classmethod
     def _convert(cls, changes: List[List[float]]) -> List[Dict]:
@@ -95,4 +95,3 @@ class Command(BaseCommand):
             for change in message["changes"]
         ]
         Ohlcv.objects.bulk_create(objs, ignore_conflicts=True)
-

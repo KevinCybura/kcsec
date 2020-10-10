@@ -133,3 +133,4 @@ kcsec/chat
 .data/
 staticfiles/
 media/
+node_modules

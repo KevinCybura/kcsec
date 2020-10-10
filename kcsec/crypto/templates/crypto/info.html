@@ -1,9 +1,9 @@
 {% block info-content %}
     <div class="card info-card col-md-4">
         <div class="card-body info-body">
-            <div class="card-body info-content" symbol="{{ coin }}">
-                <h5 class="card-title">{{ coin }}</h5>
-                <h5>{{ price }}</h5>
+            <h5 class="card-title">{{ coin }}</h5>
+            <div class="card-body info-content" id="info-{{ coin }}">
+                <h5 class="price"></h5>
             </div>
         </div>
     </div>

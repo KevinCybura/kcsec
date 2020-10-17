@@ -1,3 +1,9 @@
+build:
+	poetry install
+
+update:
+	poetry update
+
 test:
 	poetry run pytest
 
@@ -5,7 +11,7 @@ fmt:
 	poetry run isort .
 	poetry run black .
 
-web:
+serve:
 	poetry run ./manage.py runserver
 
 crypto_sockets:
@@ -33,12 +39,8 @@ seeds:
 	poetry run ./manage.py crypto_seeds
 
 db: dropdb createdb migrate seeds
-
-dc-build:
-	docker-compose
-
  # docker stuff
-build:
+dc-build:
 	docker-compose build
 
 build-no-cache:

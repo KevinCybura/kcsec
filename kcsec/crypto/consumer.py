@@ -6,8 +6,12 @@ from channels.generic.websocket import AsyncJsonWebsocketConsumer
 logger = logging.getLogger(__name__)
 
 
-class CoinConsumer(AsyncJsonWebsocketConsumer):
+class SymbolConsumer(AsyncJsonWebsocketConsumer):
     groups = ["crypto"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.symbols = []
 
     @classmethod
     async def encode_json(cls, content):
@@ -16,15 +20,18 @@ class CoinConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
         await self.accept()
 
-    async def crypto_chart_data(self, event):
-        message = json.loads(event["message"])
+    async def receive_json(self, content, **kwargs):
+        self.symbols = content.get("symbols", [])
 
-        if message["type"] == "heartbeat":
+    async def update_data(self, event):
+        message = event["message"]
+
+        if message["symbol"] not in self.symbols:
             return
 
         to_send = {message["symbol"]: {"ohlcv": message["changes"]}}
 
         await self.send_json({"message": to_send})
 
-    async def crypto_price(self, event):
+    async def update_order_book(self, event):
         pass

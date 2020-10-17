@@ -9,6 +9,12 @@ let charts_managers = cards.map((card) => {
 const socket = new WebSocket("ws://" + window.location.host + "/ws/crypto/");
 
 socket.onopen = async function (_) {
+  socket.send(
+    JSON.stringify({
+      symbols: charts_managers.map((chart) => chart.symbol),
+    })
+  );
+
   for await (const manager of charts_managers) {
     const response = await fetch("http://localhost:8000/crypto/chart_data/", {
       method: "POST",

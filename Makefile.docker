@@ -1,7 +1,7 @@
 container = kcsec_web_1
 
 test:
-	docker exec -it $(contair) poetry run pytest
+	docker exec -it $(container) poetry run pytest
 
 fmt:
 	docker exec -it $(container) poetry run isort .

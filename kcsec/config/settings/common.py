@@ -132,7 +132,13 @@ ROOT_URLCONF = "kcsec.config.urls"
 ASGI_APPLICATION = "kcsec.config.routing.application"
 
 CHANNEL_LAYERS = {
-    "default": {"BACKEND": "channels_redis.core.RedisChannelLayer", "CONFIG": {"hosts": [("127.0.0.1", 6379)]}}
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+            "expiry": 10,
+        },
+    }
 }
 
 # Password validation

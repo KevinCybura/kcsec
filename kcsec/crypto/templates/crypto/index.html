@@ -1,24 +1,26 @@
-{% extends "crypto/base.html" %}
+{% extends "core/base.html" %}
 
 {% load static %}
 
 {% block content %}
+    {% include "crypto/nav.html" %}
 
-    {% for coin in coins %}
-        <div class="i-am-centered">
-            <div class="row justify-content-around">
-                <div class="card chart-card col-md-6">
-                    <div class="chart-body">
-                        <div class="chart" id="chart-{{ coin }}" ws-symbol="{{ coin }}"></div>
+    <div class="container-fluid">
+        {% for symbol in symbols %}
+            <div class="i-am-centered">
+                <div class="row justify-content-around">
+                    <div class="card chart-card col-md-6">
+                        <div class="chart-body">
+                            <div class="chart" id="chart-{{ symbol }}" ws-symbol="{{ symbol }}"></div>
+                        </div>
                     </div>
+                    {% include "crypto/info.html" %}
                 </div>
-                {% include "crypto/info.html" %}
             </div>
-        </div>
-    {% endfor %}
+        {% endfor %}
 
+    </div>
 
-    {{ preloaded_coins|json_script:"preloaded-ohlcv" }}
     <link rel="stylesheet" href="{% static 'crypto/index.css' %}">
     <script src="https://unpkg.com/lightweight-charts@3.1.5/dist/lightweight-charts.standalone.production.js"></script>
     <script src="{% static 'crypto/chart_manager.js' %}" type="module"></script>

@@ -1,26 +1,23 @@
-{% if current_nav == "Home" %}
-    <li class="nav-item active">
-        <a class="nav-link" href="{% url 'coin' %}">{{ current_nav }}
-            <span class="sr-only">(current)</span>
+{% extends 'core/nav_base.html' %}
+
+{% block nav_content %}
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="symbol-dropdown" role="button"
+           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            {% if current_nav == "Crypto" %} {{ "Symbols" }} {% else %}{{ current_nav }} {% endif %}
         </a>
+        <div class="dropdown-menu dropdown-menu-left" aria-labelledby="symbol-dropdown">
+            {% for symbol in navs %}
+                {% ifequal current_nav symbol %}
+                    <a class="dropdown-item active" href="{% url 'coin' %}?symbol={{ symbol }}">{{ current_nav }}</a>
+                {% else %}
+                    <a class="dropdown-item" href="{% url 'coin'%}?symbol={{ symbol }}">{{ symbol }}</a>
+                {% endifequal %}
+
+                {% if not forloop.last %}
+                    <div class="dropdown-divider"></div>
+                {% endif %}
+            {% endfor %}
+        </div>
     </li>
-{% else %}
-    <li class="nav-item">
-        <a class="nav-link" href="{% url 'coin' %}">{{ "Home" }}</a>
-    </li>
-{% endif %}
-
-{% for coin in navs %}
-    {% ifequal current_nav coin %}
-        <li class="nav-item active">
-            <a class="nav-link" href="{% url 'coin' current_nav %}">{{ current_nav }} <span
-                    class="sr-only">(current)</span></a>
-        </li>
-
-    {% else %}
-        <li class="nav-item">
-            <a class="nav-link" href="{% url 'coin' coin %}">{{ coin }}</a>
-        </li>
-    {% endifequal %}
-
-{% endfor %}
+{% endblock %}

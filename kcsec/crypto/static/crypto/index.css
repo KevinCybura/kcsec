@@ -9,6 +9,7 @@ body {
     background-color: darkcyan;
     margin-top: 1rem;
     padding: 0.5rem;
+    box-shadow: 10px 12px 7px 1px rgba(0, 0, 0, .3);
 }
 
 .chart-body {
@@ -30,6 +31,7 @@ body {
 .info-card {
     background-color: darkcyan;
     margin-top: 1rem;
+    box-shadow: 10px 12px 7px 1px rgba(0, 0, 0, .3);
 }
 .info-content {
     background-color: white;

@@ -1,4 +1,4 @@
-FROM python:3.8.2-slim as base
+FROM python:3.9.0-slim as base
 
 # Add build deps for python packages
 # libpq-dev is required to install psycopg2-binary

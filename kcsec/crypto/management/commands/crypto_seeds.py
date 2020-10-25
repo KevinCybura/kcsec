@@ -4,7 +4,7 @@ from django.core.management.base import BaseCommand
 
 from kcsec.crypto.models.factories.asset import AssetFactory
 from kcsec.crypto.models.factories.exchange import ExchangeFactory
-from kcsec.crypto.views import CoinView
+from kcsec.crypto.views import SymbolView
 
 logger = logging.getLogger(__name__)
 

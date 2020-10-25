@@ -1,7 +1,5 @@
 import json
 import logging
-import traceback
-from abc import ABC
 from datetime import datetime
 from typing import TYPE_CHECKING
 
@@ -11,6 +9,7 @@ from channels.layers import get_channel_layer
 from django.utils.timezone import utc
 from websockets.exceptions import InvalidMessage
 
+from kcsec.crypto.client import Consumer
 from kcsec.crypto.client.order_book import OrderBook
 from kcsec.crypto.models import Ohlcv
 
@@ -18,38 +17,9 @@ if TYPE_CHECKING:
     from typing import Dict
     from typing import List
 
+    from websockets import WebSocketClientProtocol
 
 logger = logging.getLogger(__name__)
-
-
-class Consumer(ABC):
-    def __init__(self, ws: "websockets.WebSocketClientProtocol", *args, **kwargs):
-        self.ws = ws
-
-    async def __aenter__(self) -> "Consumer":
-        await self.subscribe()
-        return self
-
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        traceback.print_exc()
-        await self.unsubscribe()
-
-    def __await__(self):
-        return self.__aenter__().__await__()
-
-    @classmethod
-    async def connect(cls, url) -> "Consumer":
-        ws = await websockets.connect(url)
-        return cls(ws)
-
-    async def subscribe(self, *args, **kwargs):
-        return
-
-    async def handle_message(self, message) -> None:
-        pass
-
-    async def unsubscribe(self, *args, **kwargs):
-        pass
 
 
 class GeminiConsumer(Consumer):
@@ -61,13 +31,24 @@ class GeminiConsumer(Consumer):
         self.channel_layer = get_channel_layer()
         self.order_book: "Dict[str, OrderBook]" = {}
 
+    @classmethod
+    async def connect(cls, url) -> "Consumer":
+        ws = await websockets.connect(url)
+        return cls(ws)
+
     async def unsubscribe(self):
-        logger.info("Unsubscribing to gemini")
-        await self.ws.send(json.dumps({"type": "unsubscribe", "subscriptions": self.subscriptions}))
+        logger.info("Unsubscribing from gemini")
+        try:
+            await self.conn.send(json.dumps({"type": "unsubscribe", "subscriptions": self.subscriptions}))
+        except websockets.ConnectionClosedError as e:
+            if e.code == 1006:
+                logger.info("Unsubscribed from gemini")
+            else:
+                raise e
 
     async def subscribe(self, *args, **kwargs):
         logger.info("Subscribing to gemini")
-        await self.ws.send(json.dumps({"type": "subscribe", "subscriptions": self.subscriptions}))
+        await self.conn.send(json.dumps({"type": "subscribe", "subscriptions": self.subscriptions}))
 
     async def handle_message(self, message: str):
         message = json.loads(message)
@@ -89,7 +70,7 @@ class GeminiConsumer(Consumer):
 
         await self._store_ohlcv(message, exchange_id="gemini")
 
-        await self.channel_layer.group_send("crypto", {"type": "update.data", "message": json.dumps(message)})
+        await self.channel_layer.group_send("crypto", {"type": "update.data", "message": message})
 
     async def handle_l2_updates(self, message: "Dict"):
         if not self.order_book.get(message["symbol"]):

@@ -30,6 +30,10 @@ ALLOWED_HOSTS = ["*"]
 # Application definition
 
 INSTALLED_APPS = [
+    "kcsec",
+    "kcsec.core",
+    "kcsec.crypto",
+    "kcsec.securities",
     "django.contrib.staticfiles",
     "django.contrib.admin",
     "django.contrib.auth",
@@ -43,10 +47,6 @@ INSTALLED_APPS = [
     "corsheaders",
     "rest_framework",
     "channels",
-    "kcsec",
-    "kcsec.core",
-    "kcsec.crypto",
-    "kcsec.securities",
 ]
 
 MIDDLEWARE = [
@@ -193,4 +193,8 @@ CACHES = {
     }
 }
 
-LOGIN_REDIRECT_URL = "/crypto/"
+LOGIN_REDIRECT_URL = "home"
+
+LOGOUT_REDIRECT_URL = "home"
+
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"

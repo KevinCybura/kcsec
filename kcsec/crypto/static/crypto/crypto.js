@@ -14,11 +14,14 @@ socket.onopen = async function (_) {
       symbols: charts_managers.map((chart) => chart.symbol),
     })
   );
-
+  const csrftoken = Cookies.get("csrftoken");
   for await (const manager of charts_managers) {
     const response = await fetch("http://localhost:8000/crypto/chart_data/", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrftoken,
+      },
       body: JSON.stringify({ symbol: manager.symbol }),
     });
     const data = await response.json();
@@ -29,6 +32,18 @@ socket.onopen = async function (_) {
 };
 
 socket.onmessage = async function (e) {
+  const csrftoken = Cookies.get("csrftoken");
+  const response = await fetch("http://localhost:8000/crypto/make_trade/", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": csrftoken,
+    },
+    // body: JSON.stringify({ symbol: manager.symbol }),
+  });
+  console.log(e);
+  console.log(await response.json());
+
   const message = JSON.parse(e.data)["message"];
   for (const manager of charts_managers) {
     if (!Object.keys(message).includes(manager.symbol)) continue;

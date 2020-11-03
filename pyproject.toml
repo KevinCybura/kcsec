@@ -32,6 +32,7 @@ pytest-django = "^3.9.0"
 coverage = "^5.2.1"
 factory-boy = "^3.0.1"
 selenium = "^3.141.0"
+pylint = "^2.6.0"
 
 [tool.isort]
 force_single_line = true

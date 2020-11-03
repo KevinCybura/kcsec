@@ -6,6 +6,8 @@ from kcsec.core.models._meta import core_entity
 
 class Portfolio(BaseModel):
     user = models.OneToOneField("auth.User", on_delete=models.CASCADE)
+    balance = models.DecimalField(max_digits=15, decimal_places=4)
+    margin = models.DecimalField(max_digits=15, decimal_places=4)
 
     class Meta:
         db_table = core_entity("portfolio")

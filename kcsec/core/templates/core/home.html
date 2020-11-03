@@ -5,9 +5,6 @@
     <div class="container">
         <h2>Homepage</h2>
         <p> Welcome {% if user.is_authenticated %}{{ user.username }}{% else %}visitor.{% endif %}</p>
-        <p>
-            <strong>Total user registered: </strong> {{ count }}
-        </p>
     </div>
 {% endblock %}
 

@@ -7,5 +7,4 @@ urlpatterns = [
     path("", views.home, name="home"),
     path("signup", views.UserAuthView.as_view(), name="signup"),
     path("accounts/", include("django.contrib.auth.urls")),
-    path("secret", views.SecretPage.as_view(), name="secret"),
 ]

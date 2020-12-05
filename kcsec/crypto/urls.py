@@ -8,7 +8,7 @@ router = SimpleRouter()
 router.register("", views.TradeGenericViewSet, basename="chart-data")
 
 urlpatterns = [
-    path("", views.SymbolView.as_view(), name="coin"),
+    path("", views.TradingView.as_view(), name="coin"),
 ]
 
 urlpatterns += router.urls

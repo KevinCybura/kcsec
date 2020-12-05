@@ -39,7 +39,6 @@ socket.onmessage = async function (e) {
       "Content-Type": "application/json",
       "X-CSRFToken": csrftoken,
     },
-    // body: JSON.stringify({ symbol: manager.symbol }),
   });
   console.log(e);
   console.log(await response.json());
@@ -65,4 +64,11 @@ $(window).resize(function () {
 async function update_price(data, symbol) {
   let info_body = $("#info-" + symbol).children(".price");
   info_body.text(data[data.length - 1].close);
+  let table = $(".order-table-" + symbol);
+
+  let price_form = table.find("#id_price");
+  price_form.attr("placeholder", data[data.length - 1].close);
+
+  let quantity_form = table.find("#id_shares");
+  quantity_form.attr("placeholder", "000000");
 }

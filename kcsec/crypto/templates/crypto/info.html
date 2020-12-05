@@ -1,10 +1,21 @@
 {% block info-content %}
     <div class="card info-card col-md-4">
         <div class="card-body info-body">
-            <h5 class="card-title">{{ symbol }}</h5>
-            <div class="card-body info-content" id="info-{{ symbol }}">
+            <h5 class="card-title"><a href="{% url 'coin' %}?symbol={{ symbol.symbol }}">{{ symbol.symbol }}</a></h5>
+            <div class="card-body info-content" id="info-{{ symbol.symbol }}">
                 <h5 class="price"></h5>
             </div>
+            {% include "crypto/order_form.html" %}
+
+            {% if user.is_authenticated and symbol.share_data is not None %}
+                <div class="card info-data">
+                    <div class="card-body row">
+                        <p class="col-lg-6">Shares: {{ symbol.share_data.shares }}</p>
+                        <p class="col-lg-6">Average price: {{ symbol.share_data.average_price }}</p>
+                    </div>
+                </div>
+            {% endif %}
+
         </div>
     </div>
 {% endblock %}

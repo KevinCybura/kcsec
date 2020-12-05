@@ -1,5 +1,9 @@
 from rest_framework import serializers
 
+from kcsec.core.models import Portfolio
+from kcsec.crypto.models import CryptoOrder
+from kcsec.crypto.models import Symbol
+
 
 class ChartDataSerializer(serializers.Serializer):
     symbol = serializers.CharField(write_only=True)
@@ -15,7 +19,7 @@ class ChartDataSerializer(serializers.Serializer):
         return attrs
 
     def update(self, instance, validated_data):
-        return super().update(validated_data)
+        return super().update(instance, validated_data)
 
     def create(self, validated_data):
         return super().create(validated_data)

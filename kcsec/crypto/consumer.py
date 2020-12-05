@@ -31,7 +31,14 @@ class SymbolConsumer(AsyncJsonWebsocketConsumer):
 
         to_send = {message["symbol"]: {"ohlcv": message["changes"]}}
 
-        await self.send_json({"message": to_send})
+        await self.send_json({"message": to_send, "event": "chart"})
 
     async def update_order_book(self, event):
-        pass
+        message = event["message"]
+
+        if message["symbol"] not in self.symbols:
+            return
+
+        to_send = {}
+
+        await self.send_json({"message": to_send, "event": "order_book"})

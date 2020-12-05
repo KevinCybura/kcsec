@@ -1,7 +1,6 @@
 import json
 import logging
 from datetime import datetime
-from typing import TYPE_CHECKING
 
 import websockets
 from channels.db import database_sync_to_async
@@ -13,12 +12,6 @@ from kcsec.crypto.client import Consumer
 from kcsec.crypto.client.order_book import OrderBook
 from kcsec.crypto.models import Ohlcv
 
-if TYPE_CHECKING:
-    from typing import Dict
-    from typing import List
-
-    from websockets import WebSocketClientProtocol
-
 logger = logging.getLogger(__name__)
 
 
@@ -29,10 +22,10 @@ class GeminiConsumer(Consumer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.channel_layer = get_channel_layer()
-        self.order_book: "Dict[str, OrderBook]" = {}
+        self.order_book: dict[str, OrderBook] = {}
 
     @classmethod
-    async def connect(cls, url) -> "Consumer":
+    async def connect(cls, url) -> Consumer:
         ws = await websockets.connect(url)
         return cls(ws)
 
@@ -42,7 +35,7 @@ class GeminiConsumer(Consumer):
             await self.conn.send(json.dumps({"type": "unsubscribe", "subscriptions": self.subscriptions}))
         except websockets.ConnectionClosedError as e:
             if e.code == 1006:
-                logger.info("Unsubscribed from gemini")
+                logger.info("Received connection closed error, successfully unsubscribed from gemini")
             else:
                 raise e
 
@@ -65,22 +58,27 @@ class GeminiConsumer(Consumer):
         elif message["type"] == "l2_updates":
             await self.handle_l2_updates(message)
 
-    async def handle_candle_data(self, message: "Dict"):
+    async def handle_candle_data(self, message: dict):
         message["changes"] = self._convert(message["changes"])
 
         await self._store_ohlcv(message, exchange_id="gemini")
 
         await self.channel_layer.group_send("crypto", {"type": "update.data", "message": message})
 
-    async def handle_l2_updates(self, message: "Dict"):
+    async def handle_l2_updates(self, message: dict):
         if not self.order_book.get(message["symbol"]):
             self.order_book[message["symbol"]] = OrderBook(message["symbol"])
 
-        await self.order_book.get(message["symbol"]).handle_message(message)
+        if not message["type"] == "l2_updates":
+            order_book = self.order_book.get(message["symbol"])
 
-        # await self.channel_layer.group_send("crypto", {"type": "update.order.book", "message": json.dumps(message)})
+            await order_book.handle_message(message)
 
-    def _convert(self, changes: "List[List[float]]") -> "List[Dict]":
+            await self.channel_layer.group_send(
+                "crypto", {"type": "update.order_book", "message": order_book.order_book}
+            )
+
+    def _convert(self, changes: list[list[float]]) -> list[dict]:
         return [
             {
                 "time": change[0] / 1000,
@@ -95,7 +93,7 @@ class GeminiConsumer(Consumer):
         ]
 
     @database_sync_to_async
-    def _store_ohlcv(self, message: "Dict[str, Dict]", exchange_id: str = "gemini"):
+    def _store_ohlcv(self, message: dict[str, dict], exchange_id: str = "gemini"):
         objs = [
             Ohlcv(
                 exchange_id=exchange_id,

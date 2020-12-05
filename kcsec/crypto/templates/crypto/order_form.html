@@ -1,0 +1,17 @@
+{% block order-form %}
+    <form method="post">
+        <div class="form-group">
+            {% csrf_token %}
+            <table class="order-table  order-table-{{ symbol.symbol }}">
+                {{ symbol.form.as_table }}
+            </table>
+            <div class="text-center">
+                <button class="btn btn-dark order-form-button" type="submit"
+                        {% if not user.is_authenticated %}disabled{% endif %}>
+                    Place order
+                </button>
+            </div>
+        </div>
+    </form>
+
+{% endblock %}

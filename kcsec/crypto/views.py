@@ -1,26 +1,37 @@
 import logging
+from typing import List
+from typing import Optional
 
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models.expressions import F
 from django.http import Http404
-from django.views.generic import TemplateView
+from django.urls import reverse_lazy
+from django.views.generic import FormView
 from psqlextra.expressions import DateTimeEpoch
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from kcsec.core.models import Portfolio
-from kcsec.crypto.models import CryptoOrder
-from kcsec.crypto.models import CryptoShare
+from kcsec.crypto.forms import OrderForm
 from kcsec.crypto.models import Ohlcv
 from kcsec.crypto.serializers import ChartDataSerializer
 
 logger = logging.getLogger(__name__)
 
 
-class SymbolView(LoginRequiredMixin, TemplateView):
+class TradingView(FormView):
     template_name = "crypto/index.html"
-    SYMBOLS = ["BTCUSD", "ETHUSD", "LTCUSD"]
+    SYMBOLS = ["BTC", "ETH", "LTC"]
+    form_class = OrderForm
+    success_url = reverse_lazy("coin")
+
+    def form_valid(self, form):
+        form.save()
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        """If the form is invalid, render the invalid form."""
+        context_data = self.get_context_data(form=form)
+        return self.render_to_response(context_data)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -29,35 +40,59 @@ class SymbolView(LoginRequiredMixin, TemplateView):
         if symbol and symbol not in self.SYMBOLS:
             raise Http404(f"Symbol does not exist {symbol}")
 
+        symbols = [symbol] if symbol else self.SYMBOLS
+
         context["navs"] = self.SYMBOLS
         context["current_nav"] = symbol or "Crypto"
-        context["symbols"] = [symbol] if symbol else self.SYMBOLS
+        context["symbol_data"] = self.symbol_data(symbols, kwargs.get("form"))
+
+        return context
+
+    def symbol_data(self, symbols: List[str], form: Optional[OrderForm] = None) -> List[dict]:
+
+        if self.request.user.is_authenticated:
+            portfolio = self.request.user.portfolio
+            share_data = {
+                share["crypto_symbol_id"]: share
+                for share in portfolio.cryptoshare_set.filter(crypto_symbol_id__in=symbols).values(
+                    "crypto_symbol_id", "shares", "average_price"
+                )
+            }
+        else:
+            portfolio = None
+            share_data = {}
+
+        context = []
+        for symbol in symbols:
+            data = {"symbol": symbol, "share_data": share_data.get(symbol), "order_data": []}
+
+            if form and form.cleaned_data["crypto_symbol"].asset_id_base_id == symbol:
+                data["form"] = form
+            else:
+                data["form"] = self.form_class(initial={"portfolio": portfolio, "crypto_symbol": symbol})
+
+            context.append(data)
 
         return context
 
 
-class TradeGenericViewSet(LoginRequiredMixin, GenericViewSet):
+class TradeGenericViewSet(GenericViewSet):
     serializer_class = ChartDataSerializer
 
     @action(detail=False, methods=["post"])
     def chart_data(self, request):
+        """Gets Open high low close data for charts"""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer = self.get_serializer(self._get_ohlcv(serializer.validated_data["symbol"], "gemini"), many=True)
+        serializer = self.get_serializer(self._get_ohlc(serializer.validated_data["symbol"], "gemini"), many=True)
 
         return Response(serializer.data)
 
-    @action(detail=False, methods=["post"])
-    def make_trade(self, request):
-        portfolio = Portfolio.objects.get(user__username=request.user)
-        return Response({})
-
-    def _get_ohlcv(self, asset, exchange_id):
-        base = asset[:3]
-        quote = asset[3:]
-
+    @classmethod
+    def _get_ohlc(cls, asset, exchange_id):
+        """Queries Open high low close data for charts"""
         ret = list(
-            Ohlcv.objects.filter(asset_id_base=base, asset_id_quote=quote, exchange_id=exchange_id)
+            Ohlcv.objects.filter(asset_id_base=asset, exchange_id=exchange_id)
             .annotate(time=DateTimeEpoch("time_open"))
             .annotate(value=((F("high") + F("low")) / 2))
             .order_by(

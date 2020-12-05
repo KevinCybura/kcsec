@@ -6,16 +6,22 @@
     {% include "crypto/nav.html" %}
 
     <div class="container-fluid">
-        {% for symbol in symbols %}
+        {% for symbol in symbol_data %}
             <div class="i-am-centered">
                 <div class="row justify-content-around">
+{#                    <div class="card col-lg-1"></div>#}
                     <div class="card chart-card col-md-6">
                         <div class="chart-body">
-                            <div class="chart" id="chart-{{ symbol }}" ws-symbol="{{ symbol }}"></div>
+                            <div class="chart" id="chart-{{ symbol.symbol }}" ws-symbol="{{ symbol.symbol }}"></div>
                         </div>
                     </div>
                     {% include "crypto/info.html" %}
                 </div>
+                {% if user.is_authenticated %}
+                    <div class="row justify-content-around">
+                        {% include "crypto/orders.html" %}
+                    </div>
+                {% endif %}
             </div>
         {% endfor %}
 

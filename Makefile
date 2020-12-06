@@ -18,7 +18,11 @@ crypto_sockets:
 	poetry run ./manage.py ws_client
 
 superuser:
-	poetry run ./manage.py createsuperuser
+	echo "from django.contrib.auth import get_user_model; \
+	from kcsec.core.models import Portfolio; \
+	User = get_user_model(); \
+	user = User.objects.create_superuser(username='admin', password='admin', email='admin@admin.com'); \
+	Portfolio.objects.create(user=user);" | poetry run python manage.py shell
 
 createdb:
 	createuser -s kcsec

@@ -80,13 +80,24 @@ a:hover {
 .order-list-toggle {
     width: 20%;
     margin-left: 3rem;
-    justify-content: center;
+    /*justify-content: center;*/
 }
 
-.order-list-card {
+.order-list-div {
     background-color: #80002d;
+    width: 100%;
+    text-align: center;
+}
+
+
+.order-list-items{
+    margin-top: 10px;
+    text-align: center;
 }
 
 .order-item {
-    background-color: #80002d;
+    background-color: darkgray;
+    width: 100%;
+    margin-left: 3px;
+    margin-right: 3px;
 }

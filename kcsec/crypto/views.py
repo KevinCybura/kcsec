@@ -12,6 +12,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from kcsec.crypto.forms import OrderForm
+from kcsec.crypto.models import CryptoShare
 from kcsec.crypto.models import Ohlcv
 from kcsec.crypto.serializers import ChartDataSerializer
 
@@ -52,25 +53,28 @@ class TradingView(FormView):
 
         if self.request.user.is_authenticated:
             portfolio = self.request.user.portfolio
-            share_data = {
-                share["crypto_symbol_id"]: share
-                for share in portfolio.cryptoshare_set.filter(crypto_symbol_id__in=symbols).values(
-                    "crypto_symbol_id", "shares", "average_price"
-                )
-            }
         else:
             portfolio = None
-            share_data = {}
 
         context = []
         for symbol in symbols:
-            data = {"symbol": symbol, "share_data": share_data.get(symbol), "order_data": []}
+            data = {"symbol": symbol, "share_data": None, "order_data": None}
 
             if form and form.cleaned_data["crypto_symbol"].asset_id_base_id == symbol:
                 data["form"] = form
             else:
                 data["form"] = self.form_class(initial={"portfolio": portfolio, "crypto_symbol": symbol})
 
+            if portfolio:
+                data["order_data"] = (
+                    portfolio.cryptoorder_set.filter(crypto_symbol_id=symbol)
+                    .order_by("-created_at")
+                    .values("crypto_symbol_id", "shares", "price", "order_type", "created_at")
+                )
+                try:
+                    data["share_data"] = portfolio.cryptoshare_set.get(crypto_symbol_id=symbol)
+                except CryptoShare.DoesNotExist:
+                    data["share_data"] = None
             context.append(data)
 
         return context

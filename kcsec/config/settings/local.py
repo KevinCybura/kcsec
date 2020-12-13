@@ -5,6 +5,10 @@ SECRET_KEY = "local-not-so-secret-key"
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
+INSTALLED_APPS.append("debug_toolbar")
+MIDDLEWARE.append("debug_toolbar.middleware.DebugToolbarMiddleware")
+INTERNAL_IPS = ["127.0.0.1"]
+
 DATABASES = {
     "default": {
         "ENGINE": "psqlextra.backend",

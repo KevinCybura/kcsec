@@ -25,7 +25,7 @@ class CryptoShareQuerySet(PostgresQuerySet):
                 return share, True
 
             # If its a sell set quantity to a negative value.
-            if order.order_type.upper() == "SELL":
+            if order.trade_type == order.TradeType.SELL:
                 order.shares = -1 * order.shares
 
             total = (share.average_price * share.shares) + (order.price * order.shares)

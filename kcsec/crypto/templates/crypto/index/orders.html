@@ -20,6 +20,7 @@
                     <li class="order-item list-group-item bg-secondary">
                         {{ order.crypto_symbol_id }} |
                         {{ order.order_type }} |
+                        {{ order.trade_type }} |
                         Shares: {{ order.shares|floatformat:2 }} |
                         Price: {{ order.price|floatformat:2 }} |
                         Date made: {{ order.created_at }}

@@ -1,17 +1,18 @@
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from kcsec.core.base import BaseModel
 from kcsec.crypto.models._meta import crypto_entity
 
 
 class CryptoOrder(BaseModel):
-    class TradeType(models.Choices):
+    class TradeType(models.TextChoices):
         BUY = "buy"
         SELL = "sell"
 
-    class OrderType(models.Choices):
-        MARKET = "Market Order"
-        LIMIT = "Limit Order"
+    class OrderType(models.TextChoices):
+        MARKET = "market_order", _("Market Order")
+        LIMIT = "limit_order", _("Limit Order")
 
     crypto_symbol = models.ForeignKey("crypto.Symbol", on_delete=models.DO_NOTHING)
     share = models.ForeignKey("crypto.CryptoShare", on_delete=models.DO_NOTHING, null=True)

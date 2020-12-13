@@ -1,23 +1,16 @@
 import logging
-from typing import Optional
 
-from django.db.models.expressions import F
 from django.http import Http404
 from django.urls import reverse_lazy
 from django.views.generic import FormView
-from psqlextra.expressions import DateTimeEpoch
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet
 
 from kcsec.crypto.forms import OrderForm
 from kcsec.crypto.models import Ohlcv
-from kcsec.crypto.serializers import ChartDataSerializer
 
 logger = logging.getLogger(__name__)
 
 
-class TradingView(FormView):
+class TradeView(FormView):
     template_name = "crypto/index.html"
     SYMBOLS = ["BTC", "ETH", "LTC"]
     form_class = OrderForm
@@ -48,7 +41,6 @@ class TradingView(FormView):
         context["navs"] = self.SYMBOLS
         context["current_nav"] = symbol or "Crypto"
         context["symbol_data"] = self.portfolio_data(symbols)
-        context["order_types"] = ["Market Order", "Limit Order"]
 
         return context
 
@@ -68,8 +60,8 @@ class TradingView(FormView):
                 data["order_data"] = (
                     portfolio.cryptoorder_set.filter(crypto_symbol_id=symbol)
                     .order_by("-created_at")
-                    .values("crypto_symbol_id", "shares", "price", "order_type", "created_at")
-                )
+                    .values("crypto_symbol_id", "shares", "price", "order_type", "trade_type", "created_at")
+                )[:5]
                 data["share_data"] = portfolio.cryptoshare_set.filter(crypto_symbol_id=symbol)
 
                 if data["share_data"].exists():
@@ -91,31 +83,3 @@ class TradingView(FormView):
     @classmethod
     def latest_symbol_price(cls, symbol: str) -> dict:
         return Ohlcv.objects.filter(asset_id_base_id=symbol, exchange_id="gemini").values_list("close")[0]
-
-
-class TradeGenericViewSet(GenericViewSet):
-    serializer_class = ChartDataSerializer
-
-    @action(detail=False, methods=["post"])
-    def chart_data(self, request):
-        """Gets Open high low close data for charts"""
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer = self.get_serializer(self.get_ohlc(serializer.validated_data["symbol"], "gemini"), many=True)
-
-        return Response(serializer.data)
-
-    @classmethod
-    def get_ohlc(cls, asset, exchange_id):
-        """Queries Open high low close data for charts"""
-        ret = list(
-            Ohlcv.objects.filter(asset_id_base=asset, exchange_id=exchange_id)
-            .annotate(time=DateTimeEpoch("time_open"))
-            .annotate(value=((F("high") + F("low")) / 2))
-            .order_by(
-                F("time").desc(),
-            )[:1441]
-            .values("open", "high", "low", "close", "volume", "value", "time")
-        )
-        ret.reverse()
-        return ret

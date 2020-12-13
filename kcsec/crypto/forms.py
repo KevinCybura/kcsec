@@ -16,9 +16,10 @@ class OrderForm(forms.ModelForm):
         widget=forms.NumberInput(attrs={"class": "form-control form-control-sm"}), validators=[MinValueValidator(0.0)]
     )
     price = forms.DecimalField(
-        min_value=0.0,
-        widget=forms.NumberInput(attrs={"class": "form-control form-control-sm order-price", "step": "0.01"}),
+        validators=[MinValueValidator(0.0)],
+        widget=forms.NumberInput(attrs={"class": "form-control form-control-sm", "step": "0.01"}),
         required=False,
+        disabled=True,
     )
 
     class Meta:
@@ -27,16 +28,16 @@ class OrderForm(forms.ModelForm):
         widgets = {
             "shares": forms.TextInput(attrs={"class": "form-control form-control-sm"}),
             "trade_type": forms.RadioSelect(
-                attrs={"class": "trade-type-radio active", "type": "button", "id": "trade_type"}
+                attrs={"class": "btn-trade-type-radio btn btn-secondary", "type": "button"}
             ),
-            "order_type": forms.Select(attrs={"class": "btn btn-secondary", "type": "button"}),
+            "order_type": forms.Select(attrs={"class": "order-btn-select btn btn-secondary", "type": "button"}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs, error_class=TableErrorList)
 
     def save(self, commit=True):
-        if self.cleaned_data["order_type"] == CryptoOrder.OrderType.MARKET.value:
+        if self.cleaned_data["order_type"] == CryptoOrder.OrderType.MARKET:
             self.instance.price = self.get_price()[0]
 
         self.instance.filled = True

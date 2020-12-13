@@ -72,29 +72,23 @@ $(".btn-trade-type-radio").click(function () {
   $(this).addClass("active");
 });
 
-$(function (e) {
-  const order_type = $(this).find("select[id$='order_type']").val();
-  if (order_type === "Market Order") {
-    $(this).find(".order-price").attr("disabled", true);
-  } else {
-    $(this).find(".order_price").removeAttr("disabled");
-  }
-});
-
-// Disable price if its a Market Order.
+// Disable price if order_type is a Market Order.
 $(".order-btn-dropdown select").change(function () {
   const option = $(this).val();
-  const parent = $(this).closest(".info-content");
+  // Get current
+  const symbol = $(this)
+    .closest(".info-content")
+    .find(".order-table")
+    .find("input[id$='crypto_symbol']")
+    .val();
 
-  const table = parent.find(".order-table");
-  const symbol = table.find("input[id$='crypto_symbol'").val();
-  if (option === "Market Order") {
+  if (option === "market_order") {
     let form = $(this).closest("form");
     let price_form = form.find("#id_price");
     price_form =
       price_form.length === 0 ? form.find(`#id_${symbol}_price`) : price_form;
     price_form.attr("disabled", true);
-  } else if (option === "Limit Order") {
+  } else if (option === "limit_order") {
     let form = $(this).closest("form");
     let price_form = form.find("#id_price");
     price_form =

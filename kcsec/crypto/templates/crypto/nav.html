@@ -13,10 +13,6 @@
                 {% else %}
                     <a class="dropdown-item" href="{% url 'coin'%}?symbol={{ symbol }}">{{ symbol }}</a>
                 {% endifequal %}
-
-                {% if not forloop.last %}
-                    <div class="dropdown-divider"></div>
-                {% endif %}
             {% endfor %}
         </div>
     </li>

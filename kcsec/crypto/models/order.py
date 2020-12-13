@@ -5,9 +5,13 @@ from kcsec.crypto.models._meta import crypto_entity
 
 
 class CryptoOrder(BaseModel):
-    class OrderType(models.Choices):
+    class TradeType(models.Choices):
         BUY = "buy"
         SELL = "sell"
+
+    class OrderType(models.Choices):
+        MARKET = "Market Order"
+        LIMIT = "Limit Order"
 
     crypto_symbol = models.ForeignKey("crypto.Symbol", on_delete=models.DO_NOTHING)
     share = models.ForeignKey("crypto.CryptoShare", on_delete=models.DO_NOTHING, null=True)
@@ -15,7 +19,8 @@ class CryptoOrder(BaseModel):
     price = models.DecimalField(max_digits=15, decimal_places=5)
     shares = models.DecimalField(max_digits=15, decimal_places=5)
     filled = models.BooleanField(default=False)
-    order_type = models.CharField(choices=OrderType.choices, max_length=5)
+    trade_type = models.CharField(choices=TradeType.choices, max_length=5, default=TradeType.BUY)
+    order_type = models.CharField(choices=OrderType.choices, max_length=20, default=OrderType.MARKET)
 
     class Meta:
         db_table = crypto_entity("order")

@@ -42,7 +42,7 @@ migrations:
 seeds:
 	poetry run ./manage.py crypto_seeds
 
-db: dropdb createdb migrate seeds
+db: dropdb createdb migrate seeds superuser
  # docker stuff
 dc-build:
 	docker-compose build

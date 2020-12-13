@@ -1,5 +1,4 @@
 import logging
-from typing import List
 from typing import Optional
 
 from django.db.models.expressions import F
@@ -12,7 +11,6 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from kcsec.crypto.forms import OrderForm
-from kcsec.crypto.models import CryptoShare
 from kcsec.crypto.models import Ohlcv
 from kcsec.crypto.serializers import ChartDataSerializer
 
@@ -24,6 +22,10 @@ class TradingView(FormView):
     SYMBOLS = ["BTC", "ETH", "LTC"]
     form_class = OrderForm
     success_url = reverse_lazy("coin")
+
+    def get_success_url(self):
+        symbol = self.get_form().data["crypto_symbol"]
+        return self.success_url + f"?symbol={symbol}"
 
     def form_valid(self, form):
         form.save()
@@ -45,25 +47,22 @@ class TradingView(FormView):
 
         context["navs"] = self.SYMBOLS
         context["current_nav"] = symbol or "Crypto"
-        context["symbol_data"] = self.symbol_data(symbols, kwargs.get("form"))
+        context["symbol_data"] = self.portfolio_data(symbols)
+        context["order_types"] = ["Market Order", "Limit Order"]
 
         return context
 
-    def symbol_data(self, symbols: List[str], form: Optional[OrderForm] = None) -> List[dict]:
+    def portfolio_data(self, symbols: list[str]) -> list[dict]:
 
         if self.request.user.is_authenticated:
             portfolio = self.request.user.portfolio
         else:
             portfolio = None
 
-        context = []
+        portfolio_data = []
         for symbol in symbols:
-            data = {"symbol": symbol, "share_data": None, "order_data": None}
 
-            if form and form.cleaned_data["crypto_symbol"].asset_id_base_id == symbol:
-                data["form"] = form
-            else:
-                data["form"] = self.form_class(initial={"portfolio": portfolio, "crypto_symbol": symbol})
+            data = {"symbol": symbol, "share_data": None, "order_data": None}
 
             if portfolio:
                 data["order_data"] = (
@@ -71,13 +70,27 @@ class TradingView(FormView):
                     .order_by("-created_at")
                     .values("crypto_symbol_id", "shares", "price", "order_type", "created_at")
                 )
-                try:
-                    data["share_data"] = portfolio.cryptoshare_set.get(crypto_symbol_id=symbol)
-                except CryptoShare.DoesNotExist:
-                    data["share_data"] = None
-            context.append(data)
+                data["share_data"] = portfolio.cryptoshare_set.filter(crypto_symbol_id=symbol)
 
-        return context
+                if data["share_data"].exists():
+                    data["share_data"] = data["share_data"][0]
+
+            data["form"] = self.form_class(
+                initial={
+                    "portfolio": portfolio,
+                    "crypto_symbol": symbol,
+                    "price": round(self.latest_symbol_price(symbol)[0], 2),
+                },
+                auto_id=f"id_{symbol}_%s",
+            )
+
+            portfolio_data.append(data)
+
+        return portfolio_data
+
+    @classmethod
+    def latest_symbol_price(cls, symbol: str) -> dict:
+        return Ohlcv.objects.filter(asset_id_base_id=symbol, exchange_id="gemini").values_list("close")[0]
 
 
 class TradeGenericViewSet(GenericViewSet):
@@ -88,12 +101,12 @@ class TradeGenericViewSet(GenericViewSet):
         """Gets Open high low close data for charts"""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer = self.get_serializer(self._get_ohlc(serializer.validated_data["symbol"], "gemini"), many=True)
+        serializer = self.get_serializer(self.get_ohlc(serializer.validated_data["symbol"], "gemini"), many=True)
 
         return Response(serializer.data)
 
     @classmethod
-    def _get_ohlc(cls, asset, exchange_id):
+    def get_ohlc(cls, asset, exchange_id):
         """Queries Open high low close data for charts"""
         ret = list(
             Ohlcv.objects.filter(asset_id_base=asset, exchange_id=exchange_id)

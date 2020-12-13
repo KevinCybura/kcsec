@@ -20,7 +20,7 @@ class Consumer(ABC):
 
     @classmethod
     @abstractmethod
-    async def connect(cls, url) -> "Consumer":
+    async def connect(cls, url: str) -> "Consumer":
         pass
 
     @abstractmethod

@@ -1,21 +1,36 @@
 {% block info-content %}
-    <div class="card info-card col-md-4">
-        <div class="card-body info-body">
-            <h5 class="card-title"><a href="{% url 'coin' %}?symbol={{ symbol.symbol }}">{{ symbol.symbol }}</a></h5>
-            <div class="card-body info-content" id="info-{{ symbol.symbol }}">
-                <h5 class="price"></h5>
+    <div class="info-card col-sm-5 col-md-4 col-lg-3">
+        <div class="info-header card-header row">
+            <div class="col-md-2">
+                {% if symbol_data|length == 1 %}
+                    <a class="info-symbol-link-disable"><h6>{{ symbol.symbol }}</h6></a>
+                {% else %}
+                    <a href="{% url 'coin' %}?symbol={{ symbol.symbol }}"><h6>{{ symbol.symbol }}</h6></a>
+                {% endif %}
             </div>
-            {% include "crypto/order_form.html" %}
 
-            {% if user.is_authenticated and symbol.share_data is not None %}
-                <div class="card info-data">
-                    <div class="card-body row">
-                        <p class="col-lg-6">Shares: {{ symbol.share_data.shares }}</p>
-                        <p class="col-lg-6">Average price: {{ symbol.share_data.average_price }}</p>
-                    </div>
-                </div>
-            {% endif %}
-
+            <div class="col-lg-8 info-price" id="info-{{ symbol.symbol }}">
+                <h5 class="symbol-price"></h5>
+            </div>
         </div>
+
+        <div class="info-content">
+            <form method="post" class="info-content">
+                {% include "crypto/order_btn_group.html" %}
+
+                <div class="order-form card-body">
+                    {% include "crypto/order_form.html" %}
+                </div>
+
+            </form>
+        </div>
+        {% if user.is_authenticated and symbol.share_data is not None %}
+            <div class="card-footer">
+                <div class="row info-footer">
+                    <p class="col-lg-5"><strong>Shares</strong>: {{ symbol.share_data.shares|floatformat:2 }}</p>
+                    <p class="col-lg-5"><strong>Average price</strong>: {{ symbol.share_data.average_price|floatformat:2 }}</p>
+                </div>
+            </div>
+        {% endif %}
     </div>
 {% endblock %}

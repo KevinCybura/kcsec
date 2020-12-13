@@ -1,0 +1,14 @@
+{% block order_btn_group %}
+    <div class="order-btn-group">
+        <div class="btn-group btn-group-toggle order-btn-group-trade" role="group">
+            {% for choice in symbol.form.trade_type %}
+                <li class="btn-trade-type-radio btn btn-secondary">
+                    {{ choice }}
+                </li>
+            {% endfor %}
+        </div>
+        <div class="order-btn-dropdown">
+            {{ symbol.form.order_type }}
+        </div>
+    </div>
+{% endblock %}

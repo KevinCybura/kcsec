@@ -8,11 +8,12 @@
     <div class="container-fluid">
         {% for symbol in symbol_data %}
             <div class="i-am-centered">
-                <div class="row justify-content-around">
-{#                    <div class="card col-lg-1"></div>#}
-                    <div class="card chart-card col-md-6">
-                        <div class="chart-body">
-                            <div class="chart" id="chart-{{ symbol.symbol }}" ws-symbol="{{ symbol.symbol }}"></div>
+                <div class="content-row row justify-content-around">
+                    <div class="chart-card col-sm-6 col-md-7 col-lg-8">
+                        <div class="card">
+                            <div class="chart-body">
+                                <div class="chart" id="chart-{{ symbol.symbol }}" ws-symbol="{{ symbol.symbol }}"></div>
+                            </div>
                         </div>
                     </div>
                     {% include "crypto/info.html" %}

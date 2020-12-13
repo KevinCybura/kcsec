@@ -32,17 +32,6 @@ socket.onopen = async function (_) {
 };
 
 socket.onmessage = async function (e) {
-  const csrftoken = Cookies.get("csrftoken");
-  const response = await fetch("http://localhost:8000/crypto/make_trade/", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-CSRFToken": csrftoken,
-    },
-  });
-  console.log(e);
-  console.log(await response.json());
-
   const message = JSON.parse(e.data)["message"];
   for (const manager of charts_managers) {
     if (!Object.keys(message).includes(manager.symbol)) continue;
@@ -62,13 +51,54 @@ $(window).resize(function () {
 });
 
 async function update_price(data, symbol) {
-  let info_body = $("#info-" + symbol).children(".price");
-  info_body.text(data[data.length - 1].close);
+  let info_body = $("#info-" + symbol).children(".symbol-price");
+  info_body.text("$" + data[data.length - 1].close);
   let table = $(".order-table-" + symbol);
 
-  let price_form = table.find("#id_price");
-  price_form.attr("placeholder", data[data.length - 1].close);
+  let price_form = table.find(`#id_${symbol}_price`);
+  price_form = price_form.length === 0 ? price_form : table.find("#id_price");
+  price_form.attr("placeholder", "$" + data[data.length - 1].close);
+  price_form.val(data[data.length - 1].close);
 
-  let quantity_form = table.find("#id_shares");
-  quantity_form.attr("placeholder", "000000");
+  let quantity_form = table.find(`#id_${symbol}_shares`);
+  quantity_form.attr("placeholder", "0");
 }
+
+// ============================== End Chart/Sockets ====================
+
+$(".btn-trade-type-radio").click(function () {
+  // Set trade-type choice to active.
+  $(".btn-trade-type-radio").removeClass("active");
+  $(this).addClass("active");
+});
+
+$(function (e) {
+  const order_type = $(this).find("select[id$='order_type']").val();
+  if (order_type === "Market Order") {
+    $(this).find(".order-price").attr("disabled", true);
+  } else {
+    $(this).find(".order_price").removeAttr("disabled");
+  }
+});
+
+// Disable price if its a Market Order.
+$(".order-btn-dropdown select").change(function () {
+  const option = $(this).val();
+  const parent = $(this).closest(".info-content");
+
+  const table = parent.find(".order-table");
+  const symbol = table.find("input[id$='crypto_symbol'").val();
+  if (option === "Market Order") {
+    let form = $(this).closest("form");
+    let price_form = form.find("#id_price");
+    price_form =
+      price_form.length === 0 ? form.find(`#id_${symbol}_price`) : price_form;
+    price_form.attr("disabled", true);
+  } else if (option === "Limit Order") {
+    let form = $(this).closest("form");
+    let price_form = form.find("#id_price");
+    price_form =
+      price_form.length === 0 ? form.find(`#id_${symbol}_price`) : price_form;
+    price_form.attr("disabled", false);
+  }
+});

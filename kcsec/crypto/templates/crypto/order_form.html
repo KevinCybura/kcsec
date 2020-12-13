@@ -1,9 +1,41 @@
 {% block order-form %}
-    <form method="post">
         <div class="form-group">
             {% csrf_token %}
+            {{ symbol.form.errors }}
             <table class="order-table  order-table-{{ symbol.symbol }}">
-                {{ symbol.form.as_table }}
+                <tbody>
+                {% for hidden in symbol.form.hidden_fields %}
+                    {{ hidden }}
+                {% endfor %}
+                <tr>
+                    <th>{{ symbol.form.price.label_tag }}</th>
+                    <td class="order-table-field">{{ symbol.form.price }}</td>
+                </tr>
+                <tr>
+                    <th>{{ symbol.form.shares.label_tag }}</th>
+                    <td class="order-table-field">{{ symbol.form.shares }}</td>
+                </tr>
+                </tbody>
+            </table>
+            <table class="order-error-table">
+                <tbody>
+                    <tr class="justify-content-center">
+                        {% for error in symbol.form.price.errors %}
+                            <td class="alert alert-danger">
+                                {{ symbol.form.price.label_tag }}
+                                <strong>{{ error|escape }}</strong>
+                            </td>
+                        {% endfor %}
+                    </tr>
+                    <tr class="justify-content-center">
+                        {% for error in symbol.form.shares.errors %}
+                            <td class="alert alert-danger">
+                                {{ symbol.form.shares.label_tag }}
+                                <strong>{{ error|escape }}</strong>
+                            </td>
+                        {% endfor %}
+                    </tr>
+                </tbody>
             </table>
             <div class="text-center">
                 <button class="btn btn-dark order-form-button" type="submit"
@@ -12,6 +44,4 @@
                 </button>
             </div>
         </div>
-    </form>
-
 {% endblock %}

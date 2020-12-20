@@ -1,25 +1,58 @@
+import django_filters
 from rest_framework import serializers
 
-from kcsec.core.models import Portfolio
-from kcsec.crypto.models import CryptoOrder
-from kcsec.crypto.models import Symbol
+from kcsec.crypto.models import Ohlcv
 
 
-class ChartDataSerializer(serializers.Serializer):
+class OhlcvSerializer(serializers.ModelSerializer):
     symbol = serializers.CharField(write_only=True)
-    time = serializers.IntegerField(read_only=True)
-    open = serializers.FloatField(read_only=True)
-    high = serializers.FloatField(read_only=True)
-    low = serializers.FloatField(read_only=True)
-    close = serializers.FloatField(read_only=True)
-    volume = serializers.FloatField(read_only=True)
     value = serializers.FloatField(read_only=True)
+    time = serializers.FloatField(read_only=True)
 
-    def validate(self, attrs):
-        return attrs
+    class Meta:
+        model = Ohlcv
+        fields = [
+            "symbol",
+            "open",
+            "high",
+            "low",
+            "close",
+            "volume",
+            "value",
+            "time",
+            "time_open",
+            "asset_id_base",
+            "asset_id_quote",
+            "exchange",
+        ]
+        write_only_fields = ["symbol"]
+        read_only_fields = [
+            "open",
+            "high",
+            "low",
+            "close",
+            "volume",
+            "value",
+            "time",
+            "time_open",
+            "asset_id_base",
+            "asset_id_quote",
+            "exchange",
+        ]
 
-    def update(self, instance, validated_data):
-        return super().update(instance, validated_data)
 
-    def create(self, validated_data):
-        return super().create(validated_data)
+class OhlcvFilter(django_filters.FilterSet):
+    asset_id_base = django_filters.CharFilter(field_name="asset_id_base")
+    asset_id_quote = django_filters.CharFilter(field_name="asset_id_quote")
+    exchange = django_filters.CharFilter(field_name="exchange")
+    time_open = django_filters.DateTimeFromToRangeFilter()
+
+    o = django_filters.OrderingFilter(fields=["time_open"])
+    limit = django_filters.NumberFilter(method="limit_to", label="limit to n values")
+    list = django_filters.NumberFilter(method="to_list", label="convert dict -> list")
+
+    def limit_to(self, query_set, field_name, value):
+        if self.request.GET.get("o") == "time_open":
+            qs = query_set.filter()
+            return qs[qs.count() - value :]
+        return query_set.all()[:value]

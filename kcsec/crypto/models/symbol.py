@@ -2,6 +2,7 @@ from django.db import models
 
 from kcsec.core.base import BaseModel
 from kcsec.crypto.models._meta import crypto_entity
+from kcsec.crypto.models._querysets import SymbolQuerySet
 
 
 class Symbol(BaseModel):
@@ -41,6 +42,8 @@ class Symbol(BaseModel):
     volume_1mth_usd = models.FloatField(null=True)
     price = models.DecimalField(decimal_places=5, max_digits=50, null=True)
     symbol_icon = models.ImageField(upload_to="images/crypto/", height_field=48, width_field=48, null=True)
+
+    objects = SymbolQuerySet.as_manager()
 
     class Meta:
         db_table = crypto_entity("symbol")

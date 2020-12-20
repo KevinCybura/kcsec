@@ -10,6 +10,7 @@ class CryptoShare(BaseModel):
     crypto_symbol = models.ForeignKey("crypto.Symbol", on_delete=models.DO_NOTHING)
     shares = models.DecimalField(max_digits=15, decimal_places=5)
     average_price = models.DecimalField(max_digits=15, decimal_places=5)
+    percent_change = models.DecimalField(max_digits=7, decimal_places=2)
 
     objects = CryptoShareQuerySet.as_manager()
 

@@ -1,0 +1,18 @@
+body {
+    background-color: #2b2b2b;
+    color: black;
+}
+
+a {
+    color: inherit;
+}
+
+a:hover {
+    color: inherit;
+}
+
+.share-card {
+    background-color: #80002d;
+    text-align: center;
+    margin-top: 0.5rem;
+}

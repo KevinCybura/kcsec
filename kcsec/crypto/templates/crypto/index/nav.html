@@ -1,9 +1,11 @@
 {% extends 'core/nav_base.html' %}
 
 {% block nav_content %}
-    <li class="nav-item">
-        <a class="nav-link" href="{% url 'crypto_portfolio' pk=user.pk %}">Crypto Portfolio</a>
-    </li>
+    {% if user.is_authenticated %}
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'crypto_portfolio' pk=user.pk %}">Crypto Portfolio</a>
+        </li>
+    {% endif %}
     <li class="nav-item dropdown">
         <a class="nav-link dropdown-toggle" href="#" id="symbol-dropdown" role="button"
            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -14,7 +16,7 @@
                 {% ifequal current_nav symbol %}
                     <a class="dropdown-item active" href="{% url 'coin' %}?symbol={{ symbol }}">{{ current_nav }}</a>
                 {% else %}
-                    <a class="dropdown-item" href="{% url 'coin'%}?symbol={{ symbol }}">{{ symbol }}</a>
+                    <a class="dropdown-item" href="{% url 'coin' %}?symbol={{ symbol }}">{{ symbol }}</a>
                 {% endifequal %}
             {% endfor %}
         </div>

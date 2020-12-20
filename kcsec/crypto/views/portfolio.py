@@ -13,4 +13,7 @@ class PortfolioView(LoginRequiredMixin, DetailView):
     template_name = "crypto/portfolio.html"
 
     def get_context_data(self, **kwargs):
-        return super().get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
+        context["shares"] = self.request.user.portfolio.cryptoshare_set.all()
+
+        return context

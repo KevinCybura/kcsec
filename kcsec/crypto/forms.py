@@ -46,9 +46,15 @@ class OrderForm(forms.ModelForm):
         return order
 
     def get_price(self):
-        return Ohlcv.objects.filter(
-            asset_id_base=self.cleaned_data["crypto_symbol"].pk, exchange_id="gemini"
-        ).values_list("close")[0]
+        return (
+            Ohlcv.objects.filter(
+                asset_id_base=self.cleaned_data["crypto_symbol"].asset_id_base,
+                asset_id_quote=self.cleaned_data["crypto_symbol"].asset_id_quote,
+                exchange_id="gemini",
+            )
+            .order_by("-created_at")
+            .values_list("close")[0]
+        )
 
 
 class TableErrorList(ErrorList):

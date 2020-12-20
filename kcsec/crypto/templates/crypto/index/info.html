@@ -1,5 +1,5 @@
 {% block info-content %}
-    <div class="info-card col-sm-5 col-md-4 col-lg-3">
+    <div class="info-card col-sm-5 col-md-4 col-lg-3" id="info-card-{{ symbol.symbol }}">
         <div class="info-header card-header row">
             <div class="col-md-2">
                 {% if symbol_data|length == 1 %}
@@ -26,9 +26,12 @@
         </div>
         {% if user.is_authenticated and symbol.share_data is not None %}
             <div class="card-footer">
-                <div class="row info-footer">
-                    <p class="col-lg-5"><strong>Shares</strong>: {{ symbol.share_data.shares|floatformat:2 }}</p>
-                    <p class="col-lg-5"><strong>Average price</strong>: {{ symbol.share_data.average_price|floatformat:2 }}</p>
+                <div class="row info-footer justify-content-around">
+                    <p class="col-lg-8"><strong>Shares</strong>: {{ symbol.share_data.shares|floatformat:2 }}</p>
+                    <p class="col-lg-8"><strong>Average
+                        price</strong>: {{ symbol.share_data.average_price|floatformat:2 }}</p>
+                    <p class="col-lg-8" id="{{ symbol.symbol }}-percent-change"><strong>Percent
+                        change</strong>: <span>{{ symbol.share_data.percent_change|floatformat:2 }}</span>%</p>
                 </div>
             </div>
         {% endif %}

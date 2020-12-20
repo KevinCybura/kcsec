@@ -13,6 +13,7 @@ class SymbolFactory(DjangoModelFactory):
     asset_id_quote = SubFactory(AssetFactory)
     asset_id_unit = SubFactory(AssetFactory)
     exchange = SubFactory(ExchangeFactory)
+    price = Faker("pydecimal", left_digits=10, right_digits=4, positive=True, min_value=0.0)
 
     class Meta:
         model = Symbol

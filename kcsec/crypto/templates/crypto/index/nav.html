@@ -3,7 +3,7 @@
 {% block nav_content %}
     {% if user.is_authenticated %}
         <li class="nav-item">
-            <a class="nav-link" href="{% url 'crypto_portfolio' pk=user.pk %}">Crypto Portfolio</a>
+            <a class="nav-link" href="{% url 'crypto_portfolio' %}">Crypto Portfolio</a>
         </li>
     {% endif %}
     <li class="nav-item dropdown">
@@ -14,9 +14,9 @@
         <div class="dropdown-menu dropdown-menu-left" aria-labelledby="symbol-dropdown">
             {% for symbol in navs %}
                 {% ifequal current_nav symbol %}
-                    <a class="dropdown-item active" href="{% url 'coin' %}?symbol={{ symbol }}">{{ current_nav }}</a>
+                    <a class="dropdown-item active" href="{% url 'crypto' %}?symbol={{ symbol }}">{{ current_nav }}</a>
                 {% else %}
-                    <a class="dropdown-item" href="{% url 'coin' %}?symbol={{ symbol }}">{{ symbol }}</a>
+                    <a class="dropdown-item" href="{% url 'crypto' %}?symbol={{ symbol }}">{{ symbol }}</a>
                 {% endifequal %}
             {% endfor %}
         </div>

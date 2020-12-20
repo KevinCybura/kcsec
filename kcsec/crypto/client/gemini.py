@@ -1,13 +1,11 @@
 import json
 import logging
-from datetime import datetime
 from decimal import Decimal
-from typing import TypedDict
+from typing import TYPE_CHECKING
 
 import websockets
 from channels.db import database_sync_to_async
 from channels.layers import get_channel_layer
-from django.utils.timezone import utc
 from websockets.exceptions import InvalidMessage
 
 from kcsec.crypto.client import Consumer
@@ -15,23 +13,27 @@ from kcsec.crypto.client.order_book import OrderBook
 from kcsec.crypto.models import Ohlcv
 from kcsec.crypto.models import Symbol
 
+if TYPE_CHECKING:
+    from typing import Awaitable
+
+    from kcsec.crypto.client.order_book import L2Message
+    from kcsec.crypto.types import CandleMessage
+    from kcsec.crypto.types import Change
+    from kcsec.crypto.types import MessageChanges
+
 logger = logging.getLogger(__name__)
-
-
-class CandleMessage(TypedDict):
-    time: float
-    open: float
-    high: float
-    low: float
-    close: float
-    volume: int
-    value: float
 
 
 class GeminiConsumer(Consumer):
     crypto_currencies = ["BTCUSD", "ETHUSD", "LTCUSD"]
     gemini_subscriptions = [
         {"name": "candles_1m", "symbols": crypto_currencies},
+        {"name": "candles_5m", "symbols": crypto_currencies},
+        {"name": "candles_15m", "symbols": crypto_currencies},
+        {"name": "candles_30m", "symbols": crypto_currencies},
+        {"name": "candles_1h", "symbols": crypto_currencies},
+        {"name": "candles_6h", "symbols": crypto_currencies},
+        {"name": "candles_1d", "symbols": crypto_currencies},
         {"name": "l2", "symbols": crypto_currencies},
     ]
 
@@ -68,21 +70,25 @@ class GeminiConsumer(Consumer):
         if message["type"] == "heartbeat":
             await self.channel_layer.group_send("gemini", {"type": "heartbeat", "message": message})
 
-        if message["type"] == "candles_1m_updates":
-            await self.handle_candle_data(message)
+        # type = "candle_<time_frame>_updates.
+        if "candles" == message["type"].split("_")[0]:
+            await self.handle_candle_updates(message)
         elif message["type"] == "l2_updates":
             await self.handle_l2_updates(message)
 
-    async def handle_candle_data(self, message: dict):
+    async def handle_candle_updates(self, message: "CandleMessage"):
         message["changes"] = self.convert(message["changes"])
 
+        message["time_frame"] = Ohlcv.TimeFrame(message["type"].split("_")[1])
         await self.store_ohlcv(message)
-        await self.update_symbol(message)
+
+        if message["time_frame"] == Ohlcv.TimeFrame.ONE_MINUTE:
+            await self.update_symbol(message)
 
         logger.info(message)
         await self.channel_layer.group_send("gemini", {"type": "update_data", "message": message})
 
-    async def handle_l2_updates(self, message: dict):
+    async def handle_l2_updates(self, message: "L2Message"):
         if not self.order_book.get(message["symbol"]):
             self.order_book[message["symbol"]] = OrderBook(message["symbol"])
 
@@ -96,38 +102,19 @@ class GeminiConsumer(Consumer):
             )
 
     @classmethod
-    def convert(cls, changes: list[list[float]]) -> list[CandleMessage]:
-        return [
-            {
-                "time": change[0] / 1000,
-                "open": change[1],
-                "high": change[2],
-                "low": change[3],
-                "close": change[4],
-                "volume": change[5],
-                "value": (change[2] + change[3]) / 2,
-            }
-            for change in changes
-        ]
+    def convert(cls, changes: "MessageChanges") -> list["Change"]:
+        def map_changes(change: list[float]):
+            change[0] /= 1000
+            change.append((change[2] + change[3]) / 2)
+            return change
+
+        keys = ["time", "open", "high", "low", "close", "volume", "value"]
+        return [{k: v for k, v in zip(keys, change)} for change in map(map_changes, changes)]
 
     @database_sync_to_async
-    def store_ohlcv(self, message: dict[str, dict], exchange: str = "gemini"):
-        objs = [
-            Ohlcv(
-                exchange_id=exchange,
-                asset_id_base_id=message["symbol"][:3],
-                asset_id_quote_id=message["symbol"][3:],
-                time_open=datetime.fromtimestamp(change["time"], tz=utc),
-                open=change["open"],
-                high=change["high"],
-                low=change["low"],
-                close=change["close"],
-                volume=change["volume"],
-            )
-            for change in message["changes"]
-        ]
-        Ohlcv.objects.bulk_create(objs, ignore_conflicts=True)
+    def store_ohlcv(self, message: "CandleMessage", exchange: str = "gemini") -> "Awaitable[int]":
+        return Ohlcv.objects.bulk_create_from_message(message, exchange)
 
     @database_sync_to_async
-    def update_symbol(self, message: dict[str, dict]):
+    def update_symbol(self, message: "CandleMessage"):
         Symbol.objects.update_price_and_shares(message["symbol"], Decimal(message["changes"][-1]["close"]))

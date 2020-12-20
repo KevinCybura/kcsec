@@ -12,8 +12,8 @@ router.register("", ChartDataViewSet, basename="chart-data")
 router.register("ohlcv", OhlcvViewSet, basename="ohlcv")
 
 urlpatterns = [
-    path("", TradeView.as_view(), name="coin"),
-    path("portfolio/<int:pk>", PortfolioView.as_view(), name="crypto_portfolio"),
+    path("", TradeView.as_view(), name="crypto"),
+    path("portfolio/", PortfolioView.as_view(), name="crypto_portfolio"),
 ]
 
 urlpatterns += router.urls

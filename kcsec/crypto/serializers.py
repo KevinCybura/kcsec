@@ -51,8 +51,9 @@ class OhlcvFilter(django_filters.FilterSet):
     limit = django_filters.NumberFilter(method="limit_to", label="limit to n values")
     list = django_filters.NumberFilter(method="to_list", label="convert dict -> list")
 
-    def limit_to(self, query_set, field_name, value):
+    def limit_to(self, query_set, _field_name, value):
         if self.request.GET.get("o") == "time_open":
             qs = query_set.filter()
-            return qs[qs.count() - value :]
+            value = qs.count() - value
+            return qs[value:]
         return query_set.all()[:value]

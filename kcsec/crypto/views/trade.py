@@ -18,7 +18,7 @@ class TradeView(FormView):
     template_name = "crypto/index.html"
     SYMBOLS = ["BTCUSD", "ETHUSD", "LTCUSD"]
     form_class = OrderForm
-    success_url = reverse_lazy("coin")
+    success_url = reverse_lazy("crypto")
 
     def get_success_url(self):
         if symbol := self.get_form().data.get("crypto_symbol"):
@@ -52,8 +52,15 @@ class TradeView(FormView):
     def symbol_data(self, symbols: list[str]) -> list[dict]:
         portfolio_data = []
         for symbol in symbols:
+            base = symbol[:3]
+            quote = symbol[3:]
 
-            data = {"symbol": symbol, "share_data": None, "order_data": None}
+            data = {
+                "symbol": symbol,
+                "share_data": None,
+                "order_data": None,
+                **self.get_price_info(base, quote, "gemini", Ohlcv.TimeFrame.ONE_MINUTE),
+            }
 
             if self.request.user.is_authenticated:
                 data = self.portfolio_data(data, symbol, self.request.user.portfolio)
@@ -62,7 +69,7 @@ class TradeView(FormView):
                 initial={
                     "portfolio": getattr(self.request.user, "portfolio", None),
                     "crypto_symbol": symbol,
-                    "price": round(Ohlcv.objects.latest_price(symbol[:3], symbol[3:], "gemini")[0], 2),
+                    "price": round(Ohlcv.objects.latest_price(base, quote, "gemini", "1m")[0], 2),
                 },
                 auto_id=f"id_{symbol}_%s",
             )
@@ -79,9 +86,19 @@ class TradeView(FormView):
             .values("crypto_symbol_id", "shares", "price", "order_type", "trade_type", "created_at")
         )[:5]
 
-        data["share_data"] = portfolio.cryptoshare_set.filter(crypto_symbol_id=symbol)
+        share_data = portfolio.cryptoshare_set.filter(crypto_symbol_id=symbol)
 
-        if data["share_data"].exists():
-            data["share_data"] = data["share_data"][0]
+        if share_data.exists():
+            data["share_data"] = share_data[0]
 
         return data
+
+    @staticmethod
+    def get_price_info(base: str, quote: str, exchange: str, time_frame: "Ohlcv.TimeFrame"):
+        one_day_price_diff = Ohlcv.objects.get_24_hour_difference(base, quote, exchange, time_frame)
+
+        return {
+            "price": Ohlcv.objects.latest_price(base, quote, exchange, time_frame)[0],
+            "percent_change": one_day_price_diff.percent_change,
+            "price_change": one_day_price_diff.price_change,
+        }

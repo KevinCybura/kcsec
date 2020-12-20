@@ -11,7 +11,6 @@ class SymbolFactory(DjangoModelFactory):
     symbol_id = Faker("pystr")
     asset_id_base = SubFactory(AssetFactory)
     asset_id_quote = SubFactory(AssetFactory)
-    asset_id_unit = SubFactory(AssetFactory)
     exchange = SubFactory(ExchangeFactory)
     price = Faker("pydecimal", left_digits=10, right_digits=4, positive=True, min_value=0.0)
 

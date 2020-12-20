@@ -27,7 +27,7 @@ socket.onopen = async function (_) {
         const data = await response.json();
 
         await manager.build_chart(data);
-        await update_price(data, manager.symbol);
+        await update_info(data, manager.symbol);
     }
 };
 
@@ -36,10 +36,7 @@ socket.onmessage = async function (e) {
     for (const manager of charts_managers) {
         if (!Object.keys(message).includes(manager.symbol)) continue;
         await manager.update_chart(message);
-        await update_price(message[manager.symbol]["ohlcv"], manager.symbol);
-        $("#info-card-" + manager.symbol)
-            .find(`#${manager.symbol}-percent-change span`)
-            .text(message[manager.symbol]["updated_share"]["percent_change"]);
+        await update_info(message[manager.symbol], manager.symbol);
     }
 };
 
@@ -53,18 +50,34 @@ $(window).resize(function () {
     });
 });
 
-async function update_price(data, symbol) {
-    let info_body = $("#info-" + symbol).children(".symbol-price");
-    info_body.text("$" + Number(data[data.length - 1].close).toFixed(2));
-    let table = $(".order-table-" + symbol);
+async function update_info(data, symbol) {
+    const info_card = $(`#info-card-${symbol}`)
+    const price = data["ohlcv"] ? data["ohlcv"] : data
 
-    let price_form = table.find(`#id_${symbol}_price`);
-    price_form = price_form.length !== 0 ? price_form : table.find("#id_price");
-    price_form.attr("placeholder", "$" + Number(data[data.length - 1].close).toFixed(2));
-    price_form.val(Number(data[data.length - 1].close).toFixed(2));
+    // Update main price.
+    info_card.find(`#${symbol}-price`).text("$" + Number(price[price.length - 1].close).toFixed(2));
 
-    let quantity_form = table.find(`#id_${symbol}_shares`);
-    quantity_form.attr("placeholder", "0");
+    let price_form = info_card.find(`#id_${symbol}_price`);
+    price_form = price_form.length !== 0 ? price_form : info_card.find("#id_price");
+    // Update placeholder price.
+    price_form.attr("placeholder", "$" + Number(price[price.length - 1].close).toFixed(2));
+    // Update price if price is not a market_order.
+    if (price_form.find(`#id_${symbol}_order_type :selected`).text() !== "market_order") {
+        price_form.val(Number(price[price.length - 1].close).toFixed(2));
+    }
+
+
+    // let shares_form = info_card.find(`#id_${symbol}_shares`);
+    // shares_form.attr("placeholder", "0");
+
+    const change = data["24h_change"]
+    if (change) {
+        // Update today's percent and price change.
+        let price = info_card.find(`#todays-change-${symbol}`)
+        price.text(`${Number(change["price_change"]).toFixed(2)} (${Number(change["percent_change"]).toFixed(2)}%)`);
+        console.log(price)
+
+    }
 }
 
 // ============================== End Chart/Sockets ====================

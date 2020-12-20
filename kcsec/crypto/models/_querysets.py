@@ -1,25 +1,33 @@
+from datetime import datetime
 from decimal import Decimal
 from typing import TYPE_CHECKING
 
 from django.db import transaction
 from django.db.models import F
+from django.utils.timezone import utc
 from psqlextra.expressions import DateTimeEpoch
 from psqlextra.manager import PostgresQuerySet
 
 if TYPE_CHECKING:
+    from typing import Optional
     from typing import Tuple
 
     from kcsec.crypto.models import CryptoOrder
     from kcsec.crypto.models import CryptoShare
+    from kcsec.crypto.models import Ohlcv
+    from kcsec.crypto.models import Symbol
+    from kcsec.crypto.types import CandleMessage
 
 
 class OhlcvQuerySet(PostgresQuerySet):
     def trade_view_chart_filter(
-        self, asset_id_base: str, asset_id_quote: str, exchange: str, limit: int = 1441
+        self, asset_id_base: str, asset_id_quote: str, exchange: str, time_frame: "Ohlcv.TimeFrame", limit: int = 1441
     ) -> "OhlcvQuerySet":
+        filtered_qs = self.filter(
+            asset_id_base=asset_id_base, asset_id_quote=asset_id_quote, exchange=exchange, time_frame=time_frame
+        )
         return (
-            self.filter(asset_id_base=asset_id_base, asset_id_quote=asset_id_quote, exchange=exchange)
-            .annotate_time()
+            filtered_qs.annotate_time()
             .annotate_value()
             .order_by("-time")[:limit]
             .values("time", "open", "high", "low", "close", "volume", "value")
@@ -31,30 +39,57 @@ class OhlcvQuerySet(PostgresQuerySet):
     def annotate_value(self) -> "OhlcvQuerySet":
         return self.annotate(value=(F("high") + F("low")) / 2)
 
-    def latest_price(self, asset_id_base: str, asset_id_quote: str, exchange: str) -> "OhlcvQuerySet":
+    def latest_price(
+        self,
+        asset_id_base: str,
+        asset_id_quote: str,
+        exchange: str,
+        time_frame: "Ohlcv.TimeFrame",
+    ) -> "OhlcvQuerySet":
         return (
-            self.filter(asset_id_base=asset_id_base, asset_id_quote=asset_id_quote, exchange=exchange)
+            self.filter(
+                asset_id_base=asset_id_base, asset_id_quote=asset_id_quote, exchange=exchange, time_frame=time_frame
+            )
             .order_by("-time_open")
             .values_list("close")[0]
         )
 
-    def bulk_create_from_message(self, message: dict[str, dict], exchange: str):
-        pass
+    def get_24_hour_difference(
+        self,
+        asset_id_base: str,
+        asset_id_quote: str,
+        exchange: str,
+        time_frame: "Ohlcv.TimeFrame",
+        current_price: "Optional[Decimal]" = None,
+    ):
+        if not current_price:
+            current_price = self.latest_price(asset_id_base, asset_id_quote, exchange, time_frame)
+        return (
+            self.filter(
+                asset_id_base=asset_id_base, asset_id_quote=asset_id_quote, exchange_id=exchange, time_frame=time_frame
+            )
+            .order_by("-time_open")
+            .annotate(percent_change=(F("close") / current_price) - Decimal(1.0))
+            .annotate(price_change=(F("close") - current_price))[1440]
+        )
 
-        # obj = [
-        #     Ohlcv(
-        #         exchange=exchange,
-        #         asset_id_base_id=message["symbol"][:3],
-        #         asset_id_quote_id=message["symbol"][3:],
-        #         time_open=datetime.fromtimestamp(change["time"], tz=utc),
-        #         open=change["open"],
-        #         high=change["high"],
-        #         low=change["low"],
-        #         close=change["close"],
-        #         volume=change["volume"],
-        #     )
-        #     for change in message["changes"]
-        # ]
+    def bulk_create_from_message(self, message: "CandleMessage", exchange: str) -> "Ohlcv":
+        obj = [
+            self.model(
+                exchange_id=exchange,
+                asset_id_base_id=message["symbol"][:3],
+                asset_id_quote_id=message["symbol"][3:],
+                time_open=datetime.fromtimestamp(change["time"], tz=utc),
+                open=change["open"],
+                high=change["high"],
+                low=change["low"],
+                close=change["close"],
+                volume=change["volume"],
+                time_frame=message["time_frame"],
+            )
+            for change in message["changes"]
+        ]
+        return self.bulk_create(obj, ignore_conflicts=True)
 
 
 class CryptoShareQuerySet(PostgresQuerySet):
@@ -76,7 +111,7 @@ class CryptoShareQuerySet(PostgresQuerySet):
 
             # If its a sell set quantity to a negative value.
             if order.trade_type == order.TradeType.SELL:
-                order.shares = -1 * order.shares
+                order.shares *= -1
 
             total = (share.average_price * share.shares) + (order.price * order.shares)
 
@@ -92,8 +127,11 @@ class CryptoShareQuerySet(PostgresQuerySet):
 
 
 class SymbolQuerySet(PostgresQuerySet):
-    def update_price_and_shares(self, symbol: Decimal, price: float):
-        symbol = self.get(pk=symbol)
+    def update_price_and_shares(self, symbol: Decimal, price: float) -> int:
+        symbol: "Symbol" = self.get(pk=symbol)
         symbol.price = price
-        symbol.cryptoshare_set.filter().update(percent_change=(price / F("average_price") - Decimal(1.0)) * 100)
+        num_updated = symbol.cryptoshare_set.filter().update(
+            percent_change=(price / F("average_price") - Decimal(1.0)) * 100
+        )
         symbol.save()
+        return num_updated

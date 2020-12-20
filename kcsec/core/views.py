@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.shortcuts import redirect
 from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.views.generic import CreateView
@@ -9,7 +10,8 @@ from kcsec.core.forms import RegisterForm
 
 
 def home(request):
-    return render(request, "core/home.html")
+    # return render(request, "core/home.html")
+    return redirect(reverse_lazy("crypto"))
 
 
 class UserAuthView(CreateView):

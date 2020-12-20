@@ -5,12 +5,16 @@
                 {% if symbol_data|length == 1 %}
                     <a class="info-symbol-link-disable"><h6>{{ symbol.symbol }}</h6></a>
                 {% else %}
-                    <a href="{% url 'coin' %}?symbol={{ symbol.symbol }}"><h6>{{ symbol.symbol }}</h6></a>
+                    <a href="{% url 'crypto' %}?symbol={{ symbol.symbol }}"><h6>{{ symbol.symbol }}</h6></a>
                 {% endif %}
             </div>
 
             <div class="col-lg-8 info-price" id="info-{{ symbol.symbol }}">
-                <h5 class="symbol-price"></h5>
+                <h5 id="{{ symbol.symbol }}-price">${{ symbol.price|floatformat:2 }}</h5>
+            </div>
+            <div class="info-symbol-change">
+                <strong>Today</strong>:
+                <span id="todays-change-{{ symbol.symbol }}">${{ symbol.price_change|floatformat:2 }} ({{ symbol.percent_change|floatformat:2 }}%)</span>
             </div>
         </div>
 
@@ -30,8 +34,10 @@
                     <p class="col-lg-8"><strong>Shares</strong>: {{ symbol.share_data.shares|floatformat:2 }}</p>
                     <p class="col-lg-8"><strong>Average
                         price</strong>: {{ symbol.share_data.average_price|floatformat:2 }}</p>
-                    <p class="col-lg-8" id="{{ symbol.symbol }}-percent-change"><strong>Percent
-                        change</strong>: <span>{{ symbol.share_data.percent_change|floatformat:2 }}</span>%</p>
+                    <p class="col-lg-8">
+                        <strong>Percent change</strong>:
+                        <span id="{{ symbol.symbol }}-percent-change">{{ symbol.share_data.percent_change|floatformat:2 }}</span>%
+                    </p>
                 </div>
             </div>
         {% endif %}

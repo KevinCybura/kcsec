@@ -65,8 +65,4 @@ class Migration(migrations.Migration):
             name="trades_count",
             field=models.IntegerField(null=True),
         ),
-        migrations.AlterUniqueTogether(
-            name="ohlcv",
-            unique_together={("exchange_id", "asset_id_base", "asset_id_quote", "time_open")},
-        ),
     ]

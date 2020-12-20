@@ -1,47 +1,52 @@
 {% block order-form %}
-        <div class="form-group">
-            {% csrf_token %}
-            {{ symbol.form.errors }}
-            <table class="order-table  order-table-{{ symbol.symbol }}">
-                <tbody>
-                {% for hidden in symbol.form.hidden_fields %}
-                    {{ hidden }}
+    <div class="form-group">
+        {% csrf_token %}
+        {{ symbol.form.errors }}
+        <table class="order-table  order-table-{{ symbol.symbol }}">
+            <tbody>
+            {% for hidden in symbol.form.hidden_fields %}
+                {{ hidden }}
+            {% endfor %}
+            <tr>
+                <th>{{ symbol.form.price.label_tag }}</th>
+                <td class="order-table-field">{{ symbol.form.price }}</td>
+            </tr>
+            <tr>
+                <th>{{ symbol.form.shares.label_tag }}</th>
+                <td class="order-table-field">{{ symbol.form.shares }}</td>
+            </tr>
+            </tbody>
+        </table>
+        <table class="order-error-table">
+            <tbody>
+            <tr class="justify-content-center">
+                {% for error in symbol.form.price.errors %}
+                    <td class="alert alert-danger">
+                        {{ symbol.form.price.label_tag }}
+                        <strong>{{ error|escape }}</strong>
+                    </td>
                 {% endfor %}
-                <tr>
-                    <th>{{ symbol.form.price.label_tag }}</th>
-                    <td class="order-table-field">{{ symbol.form.price }}</td>
-                </tr>
-                <tr>
-                    <th>{{ symbol.form.shares.label_tag }}</th>
-                    <td class="order-table-field">{{ symbol.form.shares }}</td>
-                </tr>
-                </tbody>
-            </table>
-            <table class="order-error-table">
-                <tbody>
-                    <tr class="justify-content-center">
-                        {% for error in symbol.form.price.errors %}
-                            <td class="alert alert-danger">
-                                {{ symbol.form.price.label_tag }}
-                                <strong>{{ error|escape }}</strong>
-                            </td>
-                        {% endfor %}
-                    </tr>
-                    <tr class="justify-content-center">
-                        {% for error in symbol.form.shares.errors %}
-                            <td class="alert alert-danger">
-                                {{ symbol.form.shares.label_tag }}
-                                <strong>{{ error|escape }}</strong>
-                            </td>
-                        {% endfor %}
-                    </tr>
-                </tbody>
-            </table>
-            <div class="text-center">
+            </tr>
+            <tr class="justify-content-center">
+                {% for error in symbol.form.shares.errors %}
+                    <td class="alert alert-danger">
+                        {{ symbol.form.shares.label_tag }}
+                        <strong>{{ error|escape }}</strong>
+                    </td>
+                {% endfor %}
+            </tr>
+            </tbody>
+        </table>
+        <div class="text-center">
+            {% if  symbol_data|length > 1 %}
+                <a class="btn btn-dark order-form-button" href="{% url 'crypto' %}?symbol={{ symbol.symbol }}">Place
+                    order</a>
+            {% else %}
                 <button class="btn btn-dark order-form-button" type="submit"
                         {% if not user.is_authenticated %}disabled{% endif %}>
                     Place order
                 </button>
-            </div>
+            {% endif %}
         </div>
+    </div>
 {% endblock %}

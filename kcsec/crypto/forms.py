@@ -13,11 +13,12 @@ class OrderForm(forms.ModelForm):
     crypto_symbol = forms.ModelChoiceField(queryset=Symbol.objects.all(), widget=forms.HiddenInput())
     portfolio = forms.ModelChoiceField(queryset=Portfolio.objects.all(), widget=forms.HiddenInput())
     shares = forms.DecimalField(
-        widget=forms.NumberInput(attrs={"class": "form-control form-control-sm"}), validators=[MinValueValidator(0.0)]
+        widget=forms.NumberInput(attrs={"class": "form-control form-control-sm", "placeholder": 0}),
+        validators=[MinValueValidator(0.0)],
     )
     price = forms.DecimalField(
         validators=[MinValueValidator(0.0)],
-        widget=forms.NumberInput(attrs={"class": "form-control form-control-sm", "step": "0.01"}),
+        widget=forms.NumberInput(attrs={"class": "form-control form-control-sm"}),
         required=False,
         disabled=True,
     )
@@ -26,7 +27,6 @@ class OrderForm(forms.ModelForm):
         model = CryptoOrder
         fields = ("price", "shares", "portfolio", "crypto_symbol", "order_type", "trade_type")
         widgets = {
-            "shares": forms.TextInput(attrs={"class": "form-control form-control-sm"}),
             "trade_type": forms.RadioSelect(
                 attrs={"class": "btn-trade-type-radio btn btn-secondary", "type": "button"}
             ),

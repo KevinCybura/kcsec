@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+
 from django_filters import rest_framework as rf
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -7,6 +9,10 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 from kcsec.crypto.models import Ohlcv
 from kcsec.crypto.serializers import OhlcvFilter
 from kcsec.crypto.serializers import OhlcvSerializer
+
+if TYPE_CHECKING:
+    from kcsec.crypto.models import Exchange
+    from kcsec.crypto.models import Symbol
 
 
 class ChartDataViewSet(GenericViewSet):
@@ -22,14 +28,14 @@ class ChartDataViewSet(GenericViewSet):
         return Response(serializer.data)
 
     @classmethod
-    def get_ohlc(cls, asset, exchange_id):
+    def get_ohlc(cls, symbol: "Symbol.symbol_id", exchange: "Exchange.exchange_id") -> list[Ohlcv]:
         """Queries Open high low close data for charts"""
-        return list(reversed(Ohlcv.objects.trade_view_chart_filter(asset[:3], asset[3:], exchange_id)))
+        return list(reversed(Ohlcv.objects.trade_view_chart_filter(symbol[:3], symbol[3:], exchange, "1m")))
 
     @action(detail=False, methods=["post"])
     def latest_price(self, request):
         symbol = self.request.data["symbol"]
-        return Response(Ohlcv.objects.latest_price(symbol[:3], symbol[3:], "gemini"))
+        return Response(Ohlcv.objects.latest_price(symbol[:3], symbol[3:], "gemini", "1m"))
 
 
 class OhlcvViewSet(ReadOnlyModelViewSet):

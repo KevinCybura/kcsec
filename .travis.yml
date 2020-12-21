@@ -1,31 +1,32 @@
 language: python
 python: "3.9"
-dist: focal
+dist: bionic
 env:
-  - DJANGO_SETTINGS_MODULE=kcsec.config.settings.local
+  global:
+    - PGPORT=5432
+    - DJANGO_SETTINGS_MODULE=kcsec.config.settings.local
 cache:
   pip: true
-install: curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
-script: poetry config virtualenvs.create false
-before_script:
-  - psql -c "CREATE DATABASE kcsec;" -U postgres
-  - psql -c "CREATE USER kcsec;" -U postgres
 services:
   - postgresql
   - redis
 addons:
   postgresql: "10"
+
 jobs:
   include:
-    - stage: setup
-    - install:
-        - make migrate
+    - stage: test and lint
+      before_install:
+        - pip install poetry
+        - poetry config virtualenvs.create false
+        - psql -c "CREATE USER kcsec SUPERUSER;" -U postgres
+        - psql -c "CREATE DATABASE kcsec;" -U postgres
+#        - psql -c "GRANT ALL PRIVILEGES ON DATABASE kcsec to kcsec;" -U postgres
+      install:
         - poetry install
-    - stage: lint
-    - script:
+        - make migrate
+      script:
         - poetry run black --check .
         - poetry run isort --check .
-    - stage: test
-      script: poetry run pytest -v --duration=0
-
+        - poetry run pytest -v --durations=0
 

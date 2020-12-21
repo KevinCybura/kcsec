@@ -21,7 +21,7 @@ def crypto_seed(
             exchange=exchange,
         )
         if create_ohlcv:
-            OhlcvFactory(exchange=exchange, asset_id_base=base, asset_id_quote=quote)
+            OhlcvFactory(exchange=exchange, asset_id_base=base, asset_id_quote=quote, time_frame="1m")
 
         seeds.symbols.append(symbol)
 

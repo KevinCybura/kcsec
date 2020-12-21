@@ -21,11 +21,9 @@ if TYPE_CHECKING:
 
 class OhlcvQuerySet(PostgresQuerySet):
     def trade_view_chart_filter(
-        self, asset_id_base: str, asset_id_quote: str, exchange: str, time_frame: "Ohlcv.TimeFrame", limit: int = 1441
+        self, base: str, quote: str, exchange: str, time_frame: "Ohlcv.TimeFrame", limit: int = 1441
     ) -> "OhlcvQuerySet":
-        filtered_qs = self.filter(
-            asset_id_base=asset_id_base, asset_id_quote=asset_id_quote, exchange=exchange, time_frame=time_frame
-        )
+        filtered_qs = self.filter(asset_id_base=base, asset_id_quote=quote, exchange=exchange, time_frame=time_frame)
         return (
             filtered_qs.annotate_time()
             .annotate_value()
@@ -39,39 +37,32 @@ class OhlcvQuerySet(PostgresQuerySet):
     def annotate_value(self) -> "OhlcvQuerySet":
         return self.annotate(value=(F("high") + F("low")) / 2)
 
-    def latest_price(
-        self,
-        asset_id_base: str,
-        asset_id_quote: str,
-        exchange: str,
-        time_frame: "Ohlcv.TimeFrame",
-    ) -> "OhlcvQuerySet":
+    def latest_price(self, base: str, quote: str, exchange: str, time_frame: "Ohlcv.TimeFrame") -> "OhlcvQuerySet":
         return (
-            self.filter(
-                asset_id_base=asset_id_base, asset_id_quote=asset_id_quote, exchange=exchange, time_frame=time_frame
-            )
+            self.filter(asset_id_base=base, asset_id_quote=quote, exchange=exchange, time_frame=time_frame)
             .order_by("-time_open")
             .values_list("close")[0]
         )
 
     def get_24_hour_difference(
-        self,
-        asset_id_base: str,
-        asset_id_quote: str,
-        exchange: str,
-        time_frame: "Ohlcv.TimeFrame",
-        current_price: "Optional[Decimal]" = None,
-    ):
-        if not current_price:
-            current_price = self.latest_price(asset_id_base, asset_id_quote, exchange, time_frame)
-        return (
-            self.filter(
-                asset_id_base=asset_id_base, asset_id_quote=asset_id_quote, exchange_id=exchange, time_frame=time_frame
-            )
+        self, base: str, quote: str, exchange: str, time_frame: "Ohlcv.TimeFrame", price: "Optional[Decimal]" = None
+    ) -> "Ohlcv":
+        if not price:
+            price = self.latest_price(base, quote, exchange, time_frame)
+
+        qs = (
+            self.filter(asset_id_base=base, asset_id_quote=quote, exchange_id=exchange, time_frame=time_frame)
             .order_by("-time_open")
-            .annotate(percent_change=(F("close") / current_price) - Decimal(1.0))
-            .annotate(price_change=(F("close") - current_price))[1440]
+            .annotate(percent_change=(F("close") / price) - Decimal(1.0))
+            .annotate(price_change=(F("close") - price))
         )
+
+        try:
+            obj = qs[1441]
+        except IndexError:
+            obj = qs[0]
+
+        return obj
 
     def bulk_create_from_message(self, message: "CandleMessage", exchange: str) -> "Ohlcv":
         obj = [

@@ -1,0 +1,33 @@
+language: python
+python: "3.9"
+dist: focal
+
+env:
+  - DJANGO_SETTINGS_MODULE=kcsec.config.settings.local
+
+services:
+  - postgresql
+  - redis
+
+before_script:
+  - make createdb migrate
+
+cache:
+  pip: true
+
+install: curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
+script: poetry config virtualenvs.create false
+
+jobs:
+  include:
+    - stage: install
+    - install:
+        - poetry install
+    - stage: lint
+    - script:
+        - poetry run black --check .
+        - poetry run isort --check .
+    - stage: test
+      script: poetry run pytest -v --duration=0
+
+

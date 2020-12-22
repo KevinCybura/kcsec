@@ -10,13 +10,17 @@ class Symbol(BaseModel):
         CRYPTO = "crypto"
 
     id = models.CharField(max_length=150, primary_key=True)
-    exchange = models.ForeignKey("crypto.Exchange", on_delete=models.DO_NOTHING, null=True, default="")
+    exchange = models.ForeignKey("crypto.Exchange", on_delete=models.DO_NOTHING)
     symbol_type = models.CharField(max_length=10, choices=SymbolTypeChoices.choices)
     asset_id_base = models.ForeignKey(
-        "crypto.Asset", related_name="base", on_delete=models.DO_NOTHING, null=True, default=""
+        "crypto.Asset",
+        related_name="base",
+        on_delete=models.DO_NOTHING,
     )
     asset_id_quote = models.ForeignKey(
-        "crypto.Asset", related_name="quote", on_delete=models.DO_NOTHING, null=True, default=""
+        "crypto.Asset",
+        related_name="quote",
+        on_delete=models.DO_NOTHING,
     )
     price = models.DecimalField(decimal_places=5, max_digits=50, null=True)
     symbol_icon = models.ImageField(upload_to="images/crypto/", height_field=48, width_field=48, null=True)

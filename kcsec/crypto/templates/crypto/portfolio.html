@@ -1,9 +1,5 @@
-{% extends "core/base.html" %}
-
-{% load static %}
-
-{% block content %}
-    {% include "core/nav_base.html" %}
+{% extends "core/base.html" %} {% load static %} {% block content %} {% include
+    "core/nav_base.html" %}
 
     <div class="container-fluid">
         {% for share in shares %}
@@ -11,19 +7,27 @@
                 <div class="content-row row justify-content-around">
                     <div class="col-lg-12">
                         <div class="card share-card" id="{{ share.crypto_symbol_id }}">
-                            <p class="card-header"><strong>{{ share.crypto_symbol_id }}</strong></p>
+                            <p class="card-header">
+                                <strong>{{ share.crypto_symbol_id }}</strong>
+                            </p>
                             <div class="card-body">
                                 <p>
                                     <strong>Current Price:</strong>
-                                    <span class="symbol-price">${{ share.crypto_symbol.price|floatformat:2 }}</span></p>
+                                    <span class="symbol-price"
+                                    >${{ share.crypto_symbol.price|floatformat:2 }}</span
+                                    >
+                                </p>
                                 <p>
                                     <strong>Today:</strong>
-                                    <span class="symbol-change">{{ share.crypto_symbol.todays_change }}</span>
+                                    <span class="symbol-change"
+                                    >{{ share.crypto_symbol.todays_change }}</span
+                                    >
                                 </p>
                             </div>
                             <div class="card-footer">
                                 <strong>Shares</strong>: {{ share.shares|floatformat:2 }}
-                                <strong>Average price</strong>: {{ share.average_price|floatformat:2 }}
+                                <strong>Average price</strong>: {{ share.average_price|floatformat:2
+                                    }}
                                 <p id="{{ share.crypto_symbol_id }}-percent-change">
                                     <strong>Percent change</strong>:
                                     <span>{{ share.percent_change|floatformat:2 }}</span>%
@@ -36,6 +40,6 @@
         {% endfor %}
     </div>
 
-    <link rel="stylesheet" href="{% static 'crypto/portfolio.css' %}">
+    <link rel="stylesheet" href="{% static 'crypto/portfolio.css' %}"/>
     <script src="{% static 'crypto/portfolio.js' %}" type="module"></script>
 {% endblock %}

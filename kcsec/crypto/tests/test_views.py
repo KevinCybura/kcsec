@@ -53,6 +53,7 @@ class TestTradeView:
 def test_latest_symbol_price(crypto_seeds):
     symbol = crypto_seeds.symbols[0]
     ohlcv = OhlcvFactory(
+        symbol=symbol,
         asset_id_base=symbol.asset_id_base,
         asset_id_quote=symbol.asset_id_quote,
         time_open=datetime.datetime.now() + datetime.timedelta(minutes=1),
@@ -60,4 +61,4 @@ def test_latest_symbol_price(crypto_seeds):
         time_frame="1m",
     )
 
-    assert Ohlcv.objects.latest_price(symbol=symbol, exchange="gemini", time_frame="1m")[0] == ohlcv.close
+    assert Ohlcv.objects.latest_price(symbol=symbol, exchange="gemini", time_frame="1m") == ohlcv.close

@@ -83,7 +83,7 @@ class OhlcvQuerySet(PostgresQuerySet):
         try:
             obj = qs[time_frame.one_day_index]
         except IndexError:
-            obj = qs[qs.count()]
+            obj = qs[qs.count() - 1]
 
         ret = obj.percent_change, obj.price_change
         return ret

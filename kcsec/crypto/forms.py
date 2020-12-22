@@ -38,7 +38,8 @@ class OrderForm(forms.ModelForm):
 
     def save(self, commit=True):
         if self.cleaned_data["order_type"] == CryptoOrder.OrderType.MARKET:
-            self.instance.price = self.get_price()[0]
+            # If its a market order we just buy at the latest price eventually lets use an orderbook.
+            self.instance.price = self.get_price()
 
         self.instance.filled = True
         order: CryptoOrder = super().save(commit=commit)
@@ -46,14 +47,10 @@ class OrderForm(forms.ModelForm):
         return order
 
     def get_price(self):
-        return (
-            Ohlcv.objects.filter(
-                asset_id_base=self.cleaned_data["crypto_symbol"].asset_id_base,
-                asset_id_quote=self.cleaned_data["crypto_symbol"].asset_id_quote,
-                exchange_id="gemini",
-            )
-            .order_by("-created_at")
-            .values_list("close")[0]
+        return Ohlcv.objects.latest_price(
+            symbol=self.cleaned_data["crypto_symbol"],
+            exchange="gemini",
+            time_frame="1m",
         )
 
 

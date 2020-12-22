@@ -3,9 +3,9 @@ from types import SimpleNamespace
 import pytest
 
 from kcsec.core.models.factories.portfolio import PortfolioFactory
-from kcsec.crypto.management.seeds import crypto_seed
 from kcsec.crypto.models.factories.order import CryptoOrderFactory
 from kcsec.crypto.models.factories.share import CryptoShareFactory
+from kcsec.crypto.seeds import crypto_seed
 
 
 @pytest.fixture

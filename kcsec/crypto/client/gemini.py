@@ -12,6 +12,7 @@ from kcsec.crypto.client import Consumer
 from kcsec.crypto.client.order_book import OrderBook
 from kcsec.crypto.models import Ohlcv
 from kcsec.crypto.models import Symbol
+from kcsec.crypto.types import TimeFrame
 
 if TYPE_CHECKING:
     from typing import Awaitable
@@ -28,12 +29,12 @@ class GeminiConsumer(Consumer):
     crypto_currencies = ["BTCUSD", "ETHUSD", "LTCUSD"]
     gemini_subscriptions = [
         {"name": "candles_1m", "symbols": crypto_currencies},
-        {"name": "candles_5m", "symbols": crypto_currencies},
-        {"name": "candles_15m", "symbols": crypto_currencies},
-        {"name": "candles_30m", "symbols": crypto_currencies},
-        {"name": "candles_1h", "symbols": crypto_currencies},
-        {"name": "candles_6h", "symbols": crypto_currencies},
-        {"name": "candles_1d", "symbols": crypto_currencies},
+        # {"name": "candles_5m", "symbols": crypto_currencies},
+        # {"name": "candles_15m", "symbols": crypto_currencies},
+        # {"name": "candles_30m", "symbols": crypto_currencies},
+        # {"name": "candles_1h", "symbols": crypto_currencies},
+        # {"name": "candles_6h", "symbols": crypto_currencies},
+        # {"name": "candles_1d", "symbols": crypto_currencies},
         {"name": "l2", "symbols": crypto_currencies},
     ]
 
@@ -65,10 +66,11 @@ class GeminiConsumer(Consumer):
         message = json.loads(message)
 
         if message.get("result") == "error":
+            logger.error(message)
             raise InvalidMessage(message)
 
         if message["type"] == "heartbeat":
-            await self.channel_layer.group_send("gemini", {"type": "heartbeat", "message": message})
+            await self.channel_layer.group_send("crypto", {"type": "heartbeat", "message": message})
 
         # type = "candle_<time_frame>_updates.
         if "candles" == message["type"].split("_")[0]:
@@ -79,14 +81,14 @@ class GeminiConsumer(Consumer):
     async def handle_candle_updates(self, message: "CandleMessage"):
         message["changes"] = self.convert(message["changes"])
 
-        message["time_frame"] = Ohlcv.TimeFrame(message["type"].split("_")[1])
+        message["time_frame"] = TimeFrame(message["type"].split("_")[1])
         await self.store_ohlcv(message)
 
-        if message["time_frame"] == Ohlcv.TimeFrame.ONE_MINUTE:
+        if message["time_frame"] == TimeFrame.ONE_MINUTE:
             await self.update_symbol(message)
 
         logger.info(message)
-        await self.channel_layer.group_send("gemini", {"type": "update_data", "message": message})
+        await self.channel_layer.group_send("crypto", {"type": "update_data", "message": message})
 
     async def handle_l2_updates(self, message: "L2Message"):
         if not self.order_book.get(message["symbol"]):
@@ -98,7 +100,7 @@ class GeminiConsumer(Consumer):
             await order_book.handle_message(message)
 
             await self.channel_layer.group_send(
-                "gemini", {"type": "update.order_book", "message": order_book.order_book}
+                "crypto", {"type": "update.order_book", "message": order_book.order_book}
             )
 
     @classmethod
@@ -116,5 +118,5 @@ class GeminiConsumer(Consumer):
         return Ohlcv.objects.bulk_create_from_message(message, exchange)
 
     @database_sync_to_async
-    def update_symbol(self, message: "CandleMessage"):
-        Symbol.objects.update_price_and_shares(message["symbol"], Decimal(message["changes"][-1]["close"]))
+    def update_symbol(self, message: "CandleMessage", exchange: str = "gemini"):
+        Symbol.objects.update_price_and_shares(message["symbol"], exchange, Decimal(message["changes"][-1]["close"]))

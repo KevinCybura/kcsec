@@ -8,7 +8,7 @@ from kcsec.crypto.models.factories.exchange import ExchangeFactory
 
 
 class SymbolFactory(DjangoModelFactory):
-    symbol_id = Faker("pystr")
+    id = Faker("pystr")
     asset_id_base = SubFactory(AssetFactory)
     asset_id_quote = SubFactory(AssetFactory)
     exchange = SubFactory(ExchangeFactory)

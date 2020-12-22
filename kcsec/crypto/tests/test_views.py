@@ -60,9 +60,4 @@ def test_latest_symbol_price(crypto_seeds):
         time_frame="1m",
     )
 
-    assert (
-        Ohlcv.objects.latest_price(
-            base=symbol.asset_id_base, quote=symbol.asset_id_quote, exchange="gemini", time_frame="1m"
-        )[0]
-        == ohlcv.close
-    )
+    assert Ohlcv.objects.latest_price(symbol=symbol, exchange="gemini", time_frame="1m")[0] == ohlcv.close

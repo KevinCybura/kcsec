@@ -119,4 +119,6 @@ class GeminiConsumer(Consumer):
 
     @database_sync_to_async
     def update_symbol(self, message: "CandleMessage", exchange: str = "gemini"):
-        Symbol.objects.update_price_and_shares(message["symbol"], exchange, Decimal(message["changes"][-1]["close"]))
+        symbol = Symbol.objects.get(pk=message["symbol"], exchange=exchange)
+        symbol.price = message["changes"][-1]["close"]
+        symbol.save()

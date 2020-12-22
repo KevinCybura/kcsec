@@ -42,6 +42,7 @@ class OhlcvSerializer(serializers.ModelSerializer):
 
 
 class OhlcvFilter(django_filters.FilterSet):
+    symbol = django_filters.CharFilter(field_name="symbol_id")
     asset_id_base = django_filters.CharFilter(field_name="asset_id_base")
     asset_id_quote = django_filters.CharFilter(field_name="asset_id_quote")
     exchange = django_filters.CharFilter(field_name="exchange")

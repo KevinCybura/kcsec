@@ -4,7 +4,6 @@ export default class ChartManager {
         id = "ws-symbol",
         cs_series = true,
         area_series = true,
-        applyOptions1 = applyOptions
     ) {
         this.chart_card = document.createElement("div");
         this.symbol = card.getAttribute(id).toString();

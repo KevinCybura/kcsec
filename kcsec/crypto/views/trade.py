@@ -84,7 +84,7 @@ class TradeView(FormView):
             .values("crypto_symbol_id", "shares", "price", "order_type", "trade_type", "created_at")
         )[:5]
 
-        share_data = portfolio.cryptoshare_set.filter(crypto_symbol_id=symbol)
+        share_data = portfolio.cryptoshare_set.filter(crypto_symbol_id=symbol, exchange="gemini").total_return()
 
         if share_data.exists():
             data["share_data"] = share_data[0]

@@ -11,6 +11,10 @@ a:hover {
     color: inherit;
 }
 
+ul.card-body li {
+    background-color: #80002d;
+}
+
 .share-card {
     background-color: #80002d;
     text-align: center;

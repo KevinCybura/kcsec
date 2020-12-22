@@ -14,7 +14,9 @@
             </div>
             <div class="info-symbol-change">
                 <strong>Today</strong>:
-                <span id="todays-change-{{ symbol.symbol }}">${{ symbol.price_change|floatformat:2 }} ({{ symbol.percent_change|floatformat:2 }}%)</span>
+                <span id="todays-change-{{ symbol.symbol }}">
+                    ${{ symbol.price_change|floatformat:2 }} ({{ symbol.percent_change|floatformat:2 }}%)
+                </span>
             </div>
         </div>
 
@@ -35,8 +37,16 @@
                     <p class="col-lg-8"><strong>Average
                         price</strong>: {{ symbol.share_data.average_price|floatformat:2 }}</p>
                     <p class="col-lg-8">
-                        <strong>Percent change</strong>:
-                        <span id="{{ symbol.symbol }}-percent-change">{{ symbol.share_data.percent_change|floatformat:2 }}</span>%
+                        <strong>Today's return</strong>:
+                        <span id="todays-return-{{ symbol.symbol }}">
+                            ${{ symbol.share_data.todays_price|floatformat:2 }} ({{ symbol.share_data.todays_percent|floatformat:2 }}%)
+                        </span>
+                    </p>
+                    <p class="col-lg-8">
+                        <strong>Total return</strong>:
+                        <span id="total-return-{{ symbol.symbol }}">
+                            ${{ symbol.share_data.total_price|floatformat:2 }} ({{ symbol.share_data.total_percent|floatformat:2 }}%)
+                        </span>
                     </p>
                 </div>
             </div>

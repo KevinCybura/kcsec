@@ -88,6 +88,9 @@ class OhlcvQuerySet(PostgresQuerySet):
         ret = obj.percent_change, obj.price_change
         return ret
 
+    def get_one_day_price(self, time_frame: "TimeFrame"):
+        return self.filter(time_frame=time_frame).all()[time_frame.one_day_index]
+
     def bulk_create_from_message(self, message: "CandleMessage", exchange: "Exchange") -> "Ohlcv":
         obj = [
             self.model(
@@ -109,8 +112,14 @@ class OhlcvQuerySet(PostgresQuerySet):
 
 
 class CryptoShareQuerySet(PostgresQuerySet):
-    def update_shares(self, price: float) -> int:
-        return self.update(percent_change=(price / F("average_price") - Decimal(1.0)) * 100)
+    def total_return(self, price: Decimal) -> "CryptoShareQuerySet":
+        open_price = Ohlcv.objects.get_one_day_price(TimeFrame.ONE_MINUTE)
+        return self.annotate(
+            total_percent=((price / F("average_price")) - Decimal(1.0)) * 100,
+            total_price=price - F("average_price"),
+            todays_percent=((open_price / F("average_price") - Decimal(1.0)) * 100),
+            todays_price=(open_price - F("average_price")),
+        )
 
     def execute_order(self, order: "CryptoOrder") -> "Tuple[CryptoShare, bool]":
         """
@@ -151,16 +160,4 @@ class CryptoShareQuerySet(PostgresQuerySet):
 
 
 class SymbolQuerySet(PostgresQuerySet):
-    def update_price_and_shares(self, symbol: str, exchange: "Exchange", price: float) -> int:
-        """
-            Update price of a symbol and all shares of that symbol.
-        :param symbol: Symbol id to update
-        :param exchange: Exchange the symbol is traded on.
-        :param price: new price of symbol
-        :return: int: the number of shares updated
-        """
-        symbol: "Symbol" = self.get(pk=symbol, exchange=exchange)
-        symbol.price = price
-        num_updated = symbol.cryptoshare_set.update_shares(price)
-        symbol.save()
-        return num_updated
+    pass

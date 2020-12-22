@@ -36,7 +36,7 @@ socket.onmessage = async function (e) {
     for (const manager of charts_managers) {
         if (!Object.keys(message).includes(manager.symbol)) continue;
         await manager.update_chart(message);
-        await update_info(message[manager.symbol], manager.symbol);
+        await update_info(message[manager.symbol], manager.symbol, true);
     }
 };
 
@@ -50,7 +50,7 @@ $(window).resize(function () {
     });
 });
 
-async function update_info(data, symbol) {
+async function update_info(data, symbol, is_message=false) {
     const info_card = $(`#info-card-${symbol}`);
     const price = data["ohlcv"] ? data["ohlcv"] : data;
 
@@ -75,8 +75,8 @@ async function update_info(data, symbol) {
         price_form.val(Number(price[price.length - 1].close).toFixed(2));
     }
 
-    const change = data["24h_change"];
-    if (change) {
+    if (is_message) {
+        const change = data["24h_change"];
         // Update today's percent and price change.
         let price = info_card.find(`#todays-change-${symbol}`);
         price.text(
@@ -84,7 +84,22 @@ async function update_info(data, symbol) {
                 change["percent_change"]
             ).toFixed(2)}%)`
         );
-        console.log(price);
+        // Updates today's return
+        let todays_return = info_card.find(`#todays-return-${symbol}`);
+        todays_return.text(
+            `${Number(data["todays_return"]["price_change"]).toFixed(2)} (${Number(
+                change["percent_change"]
+            ).toFixed(2)}%)`
+        );
+
+        // Updates total return
+        let total_return = info_card.find(`#total-return-${symbol}`);
+        total_return.text(
+            `${Number(data["total_return"]["price_change"]).toFixed(2)} (${Number(
+                change["percent_change"]
+            ).toFixed(2)}%)`
+        );
+
     }
 }
 

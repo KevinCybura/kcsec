@@ -8,6 +8,7 @@ from django.contrib.auth.models import AnonymousUser
 
 from kcsec.crypto.models import CryptoShare
 from kcsec.crypto.models import Ohlcv
+from kcsec.crypto.types import TimeFrame
 
 if TYPE_CHECKING:
     from typing import Union
@@ -15,7 +16,6 @@ if TYPE_CHECKING:
     from django.contrib.auth.models import User
 
     from kcsec.crypto.types import CandleMessage
-    from kcsec.crypto.types import TimeFrame
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +79,7 @@ class SymbolConsumer(AsyncJsonWebsocketConsumer):
         if self.user.is_authenticated:
             share = CryptoShare.objects.filter(crypto_symbol=symbol, portfolio__user=self.user)
             if share.exists():
-                return {"percent_change": share[0].percent_change}
+                return {"total_percent_change": share[0].percent_change}
         return {}
 
     @database_sync_to_async

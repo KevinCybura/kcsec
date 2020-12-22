@@ -1,5 +1,5 @@
 const cards = Array.from($(".share-card"));
-const symbol_ids = cards.map(card => card.id)
+const symbol_ids = cards.map((card) => card.id);
 
 const socket = new WebSocket("ws://" + window.location.host + "/ws/crypto/");
 
@@ -10,19 +10,19 @@ socket.onopen = async function (_) {
         })
     );
 
-    let data = {}
-    let url = new URL("http://localhost:8000/crypto/ohlcv/")
+    let data = {};
+    let url = new URL("http://localhost:8000/crypto/ohlcv/");
 
     for await (const symbol_id of symbol_ids) {
         url.search = new URLSearchParams({
             asset_id_base: symbol_id.slice(0, 3),
             asset_id_quote: symbol_id.slice(3),
             limit: 1,
-            o: "-time_open"
-        }).toString()
+            o: "-time_open",
+        }).toString();
 
         const response = await fetch(url, {method: "GET"});
-        data[symbol_id] = await response.json()
+        data[symbol_id] = await response.json();
     }
     update_price(data, symbol_ids);
 };

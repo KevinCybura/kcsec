@@ -51,32 +51,40 @@ $(window).resize(function () {
 });
 
 async function update_info(data, symbol) {
-    const info_card = $(`#info-card-${symbol}`)
-    const price = data["ohlcv"] ? data["ohlcv"] : data
+    const info_card = $(`#info-card-${symbol}`);
+    const price = data["ohlcv"] ? data["ohlcv"] : data;
 
     // Update main price.
-    info_card.find(`#${symbol}-price`).text("$" + Number(price[price.length - 1].close).toFixed(2));
+    info_card
+        .find(`#${symbol}-price`)
+        .text("$" + Number(price[price.length - 1].close).toFixed(2));
 
     let price_form = info_card.find(`#id_${symbol}_price`);
-    price_form = price_form.length !== 0 ? price_form : info_card.find("#id_price");
+    price_form =
+        price_form.length !== 0 ? price_form : info_card.find("#id_price");
     // Update placeholder price.
-    price_form.attr("placeholder", "$" + Number(price[price.length - 1].close).toFixed(2));
+    price_form.attr(
+        "placeholder",
+        "$" + Number(price[price.length - 1].close).toFixed(2)
+    );
     // Update price if price is not a market_order.
-    if (price_form.find(`#id_${symbol}_order_type :selected`).text() !== "market_order") {
+    if (
+        price_form.find(`#id_${symbol}_order_type :selected`).text() !==
+        "market_order"
+    ) {
         price_form.val(Number(price[price.length - 1].close).toFixed(2));
     }
 
-
-    // let shares_form = info_card.find(`#id_${symbol}_shares`);
-    // shares_form.attr("placeholder", "0");
-
-    const change = data["24h_change"]
+    const change = data["24h_change"];
     if (change) {
         // Update today's percent and price change.
-        let price = info_card.find(`#todays-change-${symbol}`)
-        price.text(`${Number(change["price_change"]).toFixed(2)} (${Number(change["percent_change"]).toFixed(2)}%)`);
-        console.log(price)
-
+        let price = info_card.find(`#todays-change-${symbol}`);
+        price.text(
+            `${Number(change["price_change"]).toFixed(2)} (${Number(
+                change["percent_change"]
+            ).toFixed(2)}%)`
+        );
+        console.log(price);
     }
 }
 

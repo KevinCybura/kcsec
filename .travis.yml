@@ -1,12 +1,19 @@
 language: python
 python: "3.9"
 dist: bionic
+
+branches:
+  only:
+  - master
+
 env:
   global:
     - PGPORT=5432
     - DJANGO_SETTINGS_MODULE=kcsec.config.settings.local
+
 cache:
   pip: true
+
 services:
   - postgresql
   - redis

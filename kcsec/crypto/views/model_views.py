@@ -9,6 +9,7 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 from kcsec.crypto.models import Ohlcv
 from kcsec.crypto.serializers import OhlcvFilter
 from kcsec.crypto.serializers import OhlcvSerializer
+from kcsec.crypto.types import TimeFrame
 
 if TYPE_CHECKING:
     from kcsec.crypto.models import Exchange
@@ -30,12 +31,12 @@ class ChartDataViewSet(GenericViewSet):
     @classmethod
     def get_ohlc(cls, symbol: "Symbol.symbol_id", exchange: "Exchange.exchange_id") -> list[Ohlcv]:
         """Queries Open high low close data for charts"""
-        return list(reversed(Ohlcv.objects.trade_view_chart_filter(symbol[:3], symbol[3:], exchange, "1m")))
+        return list(reversed(Ohlcv.objects.filter_trade_view_chart(symbol, exchange, TimeFrame.ONE_MINUTE)))
 
     @action(detail=False, methods=["post"])
     def latest_price(self, request):
         symbol = self.request.data["symbol"]
-        return Response(Ohlcv.objects.latest_price(symbol[:3], symbol[3:], "gemini", "1m"))
+        return Response(Ohlcv.objects.latest_price(symbol, "gemini", TimeFrame.ONE_MINUTE))
 
 
 class OhlcvViewSet(ReadOnlyModelViewSet):

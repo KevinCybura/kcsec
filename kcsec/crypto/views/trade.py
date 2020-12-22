@@ -7,6 +7,7 @@ from django.views.generic import FormView
 
 from kcsec.crypto.forms import OrderForm
 from kcsec.crypto.models import Ohlcv
+from kcsec.crypto.types import TimeFrame
 
 if TYPE_CHECKING:
     from kcsec.core.models import Portfolio
@@ -52,14 +53,11 @@ class TradeView(FormView):
     def symbol_data(self, symbols: list[str]) -> list[dict]:
         portfolio_data = []
         for symbol in symbols:
-            base = symbol[:3]
-            quote = symbol[3:]
-
             data = {
                 "symbol": symbol,
                 "share_data": None,
                 "order_data": None,
-                **self.get_price_info(base, quote, "gemini", Ohlcv.TimeFrame.ONE_MINUTE),
+                **self.get_price_info(symbol, "gemini", TimeFrame.ONE_MINUTE),
             }
 
             if self.request.user.is_authenticated:
@@ -69,7 +67,7 @@ class TradeView(FormView):
                 initial={
                     "portfolio": getattr(self.request.user, "portfolio", None),
                     "crypto_symbol": symbol,
-                    "price": round(Ohlcv.objects.latest_price(base, quote, "gemini", "1m")[0], 2),
+                    "price": round(Ohlcv.objects.latest_price(symbol, "gemini", "1m"), 2),
                 },
                 auto_id=f"id_{symbol}_%s",
             )
@@ -94,11 +92,11 @@ class TradeView(FormView):
         return data
 
     @staticmethod
-    def get_price_info(base: str, quote: str, exchange: str, time_frame: "Ohlcv.TimeFrame"):
-        one_day_price_diff = Ohlcv.objects.get_24_hour_difference(base, quote, exchange, time_frame)
+    def get_price_info(symbol: str, exchange: str, time_frame: "TimeFrame"):
+        percent_change, price_change = Ohlcv.objects.one_day_difference(symbol, exchange, time_frame)
 
         return {
-            "price": Ohlcv.objects.latest_price(base, quote, exchange, time_frame)[0],
-            "percent_change": one_day_price_diff.percent_change,
-            "price_change": one_day_price_diff.price_change,
+            "price": Ohlcv.objects.latest_price(symbol, exchange, time_frame),
+            "percent_change": percent_change,
+            "price_change": price_change,
         }

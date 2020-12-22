@@ -14,16 +14,29 @@ if TYPE_CHECKING:
 
     from kcsec.crypto.models import CryptoOrder
     from kcsec.crypto.models import CryptoShare
+    from kcsec.crypto.models import Exchange
     from kcsec.crypto.models import Ohlcv
     from kcsec.crypto.models import Symbol
     from kcsec.crypto.types import CandleMessage
+    from kcsec.crypto.types import TimeFrame
 
 
 class OhlcvQuerySet(PostgresQuerySet):
-    def trade_view_chart_filter(
-        self, base: str, quote: str, exchange: str, time_frame: "Ohlcv.TimeFrame", limit: int = 1441
+    def filter_trade_view_chart(
+        self, symbol: "Symbol", exchange: "Exchange", time_frame: "TimeFrame", limit: int = None
     ) -> "OhlcvQuerySet":
-        filtered_qs = self.filter(asset_id_base=base, asset_id_quote=quote, exchange=exchange, time_frame=time_frame)
+        """
+            Filter data for TradeView light weight charts.
+        :param symbol: `Symbol` which to get data for.
+        :param exchange: the `Exchange` the symbol is traded on.
+        :param time_frame: the `TimeFrame` to filter on.
+        :param limit: optionally limit the amount of data to return.
+        :return: OhlcvQuerySet which contains data used for TradeView light weight charts.
+        """
+        if limit is None:
+            limit = time_frame.one_day_index
+
+        filtered_qs = self.filter(symbol=symbol, exchange=exchange, time_frame=time_frame)
         return (
             filtered_qs.annotate_time()
             .annotate_value()
@@ -37,39 +50,51 @@ class OhlcvQuerySet(PostgresQuerySet):
     def annotate_value(self) -> "OhlcvQuerySet":
         return self.annotate(value=(F("high") + F("low")) / 2)
 
-    def latest_price(self, base: str, quote: str, exchange: str, time_frame: "Ohlcv.TimeFrame") -> "OhlcvQuerySet":
-        return (
-            self.filter(asset_id_base=base, asset_id_quote=quote, exchange=exchange, time_frame=time_frame)
-            .order_by("-time_open")
-            .values_list("close")[0]
-        )
+    def latest_price(self, symbol: "Symbol", exchange: "Exchange", time_frame: "TimeFrame") -> "Decimal":
+        """
+            Get latest_price of a symbol.
+        :param symbol: the symbol the price is for.
+        :param exchange: the exchange the symbol is on.
+        :param time_frame: time frame of latest price.
+        :return:
+        """
+        # return self.filter(symbol=symbol, time_frame=time_frame).order_by("-time_open").values_list("close")[0]
+        return self.filter(symbol=symbol, exchange=exchange, time_frame=time_frame).latest().close
 
-    def get_24_hour_difference(
-        self, base: str, quote: str, exchange: str, time_frame: "Ohlcv.TimeFrame", price: "Optional[Decimal]" = None
-    ) -> "Ohlcv":
+    def one_day_difference(
+        self, symbol: "Symbol", exchange: "Exchange", time_frame: "TimeFrame", price: "Optional[Decimal]" = None
+    ) -> "Tuple[Decimal, Decimal]":
+        """
+            Gets the one day price and percent change for a symbol.
+        :param symbol: the symbol the difference is for
+        :param exchange: exchange the symbol is traded on
+        :param time_frame: time for 24h difference see "types.TimeFrame"
+        :param price: Optionally  pass in the current price or get latest price
+        :return: Tuple[Decimal, Decimal] that is percent_change and price_change
+        """
         if not price:
-            price = self.latest_price(base, quote, exchange, time_frame)
+            price = self.latest_price(symbol=symbol, exchange=exchange, time_frame=time_frame)
 
         qs = (
-            self.filter(asset_id_base=base, asset_id_quote=quote, exchange_id=exchange, time_frame=time_frame)
+            self.filter(symbol=symbol, exchange=exchange, time_frame=time_frame)
             .order_by("-time_open")
-            .annotate(percent_change=(F("close") / price) - Decimal(1.0))
-            .annotate(price_change=(F("close") - price))
+            .annotate(percent_change=(F("close") / price) - Decimal(1.0), price_change=(F("close") - price))
         )
-
         try:
-            obj = qs[1441]
+            obj = qs[time_frame.one_day_index]
         except IndexError:
-            obj = qs[0]
+            obj = qs[qs.count() - 1]
 
-        return obj
+        ret = obj.percent_change, obj.price_change
+        return ret
 
-    def bulk_create_from_message(self, message: "CandleMessage", exchange: str) -> "Ohlcv":
+    def bulk_create_from_message(self, message: "CandleMessage", exchange: "Exchange") -> "Ohlcv":
         obj = [
             self.model(
-                exchange_id=exchange,
+                symbol_id=message["symbol"],
                 asset_id_base_id=message["symbol"][:3],
                 asset_id_quote_id=message["symbol"][3:],
+                exchange_id=exchange,
                 time_open=datetime.fromtimestamp(change["time"], tz=utc),
                 open=change["open"],
                 high=change["high"],
@@ -84,7 +109,15 @@ class OhlcvQuerySet(PostgresQuerySet):
 
 
 class CryptoShareQuerySet(PostgresQuerySet):
+    def update_shares(self, price: float) -> int:
+        return self.update(percent_change=(price / F("average_price") - Decimal(1.0)) * 100)
+
     def execute_order(self, order: "CryptoOrder") -> "Tuple[CryptoShare, bool]":
+        """
+            Execute a order and update a `CryptoShare` row. Creates or updates a `CryptoShare` row.
+        :param order: `CryptoOrder` that is used to update the a `CryptoShare` row.
+        :return: `Tuple[CryptoShare, bool]`  (share, created)
+        """
         with transaction.atomic(using=self.db):
             try:
                 share: "CryptoShare" = self.select_for_update().get(
@@ -118,11 +151,16 @@ class CryptoShareQuerySet(PostgresQuerySet):
 
 
 class SymbolQuerySet(PostgresQuerySet):
-    def update_price_and_shares(self, symbol: Decimal, price: float) -> int:
-        symbol: "Symbol" = self.get(pk=symbol)
+    def update_price_and_shares(self, symbol: str, exchange: "Exchange", price: float) -> int:
+        """
+            Update price of a symbol and all shares of that symbol.
+        :param symbol: Symbol id to update
+        :param exchange: Exchange the symbol is traded on.
+        :param price: new price of symbol
+        :return: int: the number of shares updated
+        """
+        symbol: "Symbol" = self.get(pk=symbol, exchange=exchange)
         symbol.price = price
-        num_updated = symbol.cryptoshare_set.filter().update(
-            percent_change=(price / F("average_price") - Decimal(1.0)) * 100
-        )
+        num_updated = symbol.cryptoshare_set.update_shares(price)
         symbol.save()
         return num_updated

@@ -15,13 +15,13 @@ def crypto_seed(
     for currency in crypto_currencies:
         base = AssetFactory(asset_id=currency)
         symbol = SymbolFactory(
-            symbol_id=base.pk + quote.pk,
+            id=base.pk + quote.pk,
             asset_id_base=base,
             asset_id_quote=quote,
             exchange=exchange,
         )
         if create_ohlcv:
-            OhlcvFactory(exchange=exchange, asset_id_base=base, asset_id_quote=quote, time_frame="1m")
+            OhlcvFactory(symbol=symbol, exchange=exchange, asset_id_base=base, asset_id_quote=quote, time_frame="1m")
 
         seeds.symbols.append(symbol)
 

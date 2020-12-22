@@ -41,8 +41,8 @@ class Migration(migrations.Migration):
             ),
             preserve_default=False,
         ),
-        migrations.AlterUniqueTogether(
-            name="ohlcv",
-            unique_together={("exchange_id", "asset_id_base", "asset_id_quote", "time_open", "time_frame")},
-        ),
+        # migrations.AlterUniqueTogether(
+        #     name="ohlcv",
+        #     unique_together={("exchange_id", "asset_id_base", "asset_id_quote", "time_open", "time_frame")},
+        # ),
     ]

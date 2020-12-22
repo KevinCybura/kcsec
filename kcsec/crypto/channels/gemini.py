@@ -1,12 +1,10 @@
 import logging
-from decimal import Decimal
 from typing import TYPE_CHECKING
 
 import simplejson as json
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from django.contrib.auth.models import AnonymousUser
-from django.db.models.expressions import F
 
 from kcsec.crypto.models import CryptoShare
 from kcsec.crypto.models import Ohlcv
@@ -17,16 +15,16 @@ if TYPE_CHECKING:
     from django.contrib.auth.models import User
 
     from kcsec.crypto.types import CandleMessage
+    from kcsec.crypto.types import TimeFrame
 
 logger = logging.getLogger(__name__)
 
 
 class SymbolConsumer(AsyncJsonWebsocketConsumer):
-    groups = ["gemini"]
+    groups = ["crypto"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.currency_symbol: str = ""
         self.symbols: list[str] = []
         self.heartbeat_count: int = 0
         self.user: "Union[User, AnonymousUser]" = AnonymousUser()
@@ -40,17 +38,14 @@ class SymbolConsumer(AsyncJsonWebsocketConsumer):
         await self.accept()
 
     async def receive_json(self, content, **kwargs):
-        self.currency_symbol = content.get("currency_symbol", "USD")
         self.symbols = content.get("symbols", [])
 
     async def update_data(self, event):
-        message = event["message"]
+        message: "CandleMessage" = event["message"]
 
         logger.info(message)
-        if not message["symbol"].endswith(self.currency_symbol):
-            return
 
-        if message["symbol"] not in self.symbols or message["time_frame"] != Ohlcv.TimeFrame.ONE_MINUTE:
+        if message["symbol"] not in self.symbols or message["time_frame"] != TimeFrame.ONE_MINUTE:
             return
 
         updated_shares = await self.get_updated_share(message["symbol"])
@@ -66,7 +61,7 @@ class SymbolConsumer(AsyncJsonWebsocketConsumer):
         await self.send_json({"message": to_send, "event": "chart"})
 
     async def update_order_book(self, event):
-        message: CandleMessage = event["message"]
+        message: "CandleMessage" = event["message"]
 
         if message["symbol"] not in self.symbols or message["time_frame"] != "1m":
             return
@@ -89,11 +84,10 @@ class SymbolConsumer(AsyncJsonWebsocketConsumer):
 
     @database_sync_to_async
     def get_24_hour_difference(self, message: "CandleMessage") -> dict:
-        change = Ohlcv.objects.get_24_hour_difference(
-            message["symbol"][:3],
-            message["symbol"][3:],
+        percent_change, price_change = Ohlcv.objects.one_day_difference(
+            message["symbol"],
             "gemini",
-            Ohlcv.TimeFrame.ONE_MINUTE,
+            TimeFrame.ONE_MINUTE,
             message["changes"][-1]["close"],
         )
-        return {"percent_change": change.percent_change, "price_change": change.price_change}
+        return {"percent_change": percent_change, "price_change": price_change}

@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 
-from kcsec.crypto.management.seeds import crypto_seed
+from kcsec.crypto.seeds import crypto_seed
 
 
 class Command(BaseCommand):

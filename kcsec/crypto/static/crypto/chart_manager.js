@@ -36,7 +36,7 @@ export default class ChartManager {
     }
 
     async update_chart(message) {
-        const coin_data = message[this.symbol]["ohlcv"];
+        const coin_data = message["ohlcv"];
 
         if (coin_data.length === 1) {
             if (this.cs_series) this.candlestickSeries.update(coin_data[0]);

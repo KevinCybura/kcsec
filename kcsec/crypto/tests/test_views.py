@@ -12,7 +12,7 @@ class TestTradeView:
         view = TradeView(request=trade_view_request)
         assert view.get_success_url() == "/crypto/?symbol=BTCUSD"
 
-        trade_view_request.POST.pop("crypto_symbol")
+        trade_view_request.POST.pop("symbol")
         assert view.get_success_url() == "/crypto/"
 
     @pytest.mark.django_db
@@ -23,7 +23,7 @@ class TestTradeView:
         assert result[0]["share_data"] is not None
         assert len(result[0]["order_data"]) == 5
         assert sorted(list(result[0]["form"].fields.keys())) == [
-            "crypto_symbol",
+            "symbol",
             "order_type",
             "portfolio",
             "price",
@@ -40,7 +40,7 @@ class TestTradeView:
         assert result[0]["share_data"] is None
         assert result[0]["order_data"] is None
         assert sorted(list(result[0]["form"].fields.keys())) == [
-            "crypto_symbol",
+            "symbol",
             "order_type",
             "portfolio",
             "price",
@@ -60,5 +60,5 @@ def test_latest_symbol_price(crypto_seeds):
         exchange=crypto_seeds.exchange,
         time_frame="1m",
     )
-
-    assert Ohlcv.objects.latest_price(symbol=symbol, exchange="gemini", time_frame="1m") == ohlcv.close
+    price = Ohlcv.objects.filter(symbol=symbol, exchange="gemini", time_frame="1m").latest()
+    assert price.close == ohlcv.close

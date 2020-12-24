@@ -34,9 +34,9 @@ socket.onopen = async function (_) {
 socket.onmessage = async function (e) {
     const message = JSON.parse(e.data)["message"];
     for (const manager of charts_managers) {
-        if (!Object.keys(message).includes(manager.symbol)) continue;
+        if (message["symbol"] !== manager.symbol) continue;
         await manager.update_chart(message);
-        await update_info(message[manager.symbol], manager.symbol, true);
+        await update_info(message, manager.symbol, true);
     }
 };
 
@@ -50,7 +50,7 @@ $(window).resize(function () {
     });
 });
 
-async function update_info(data, symbol, is_message=false) {
+async function update_info(data, symbol, is_message = false) {
     const info_card = $(`#info-card-${symbol}`);
     const price = data["ohlcv"] ? data["ohlcv"] : data;
 
@@ -76,30 +76,31 @@ async function update_info(data, symbol, is_message=false) {
     }
 
     if (is_message) {
-        const change = data["24h_change"];
         // Update today's percent and price change.
-        let price = info_card.find(`#todays-change-${symbol}`);
-        price.text(
-            `${Number(change["price_change"]).toFixed(2)} (${Number(
-                change["percent_change"]
+        let symbol_change = info_card.find(`#todays-change-${symbol}`);
+        symbol_change.text(
+            `$${Number(data["price_change"]).toFixed(2)} (${Number(
+                data["percent_change"]
             ).toFixed(2)}%)`
         );
+    }
+    if (data["shares"]) {
+        const share_data = data["share_data"];
         // Updates today's return
         let todays_return = info_card.find(`#todays-return-${symbol}`);
         todays_return.text(
-            `${Number(data["todays_return"]["price_change"]).toFixed(2)} (${Number(
-                change["percent_change"]
+            `${Number(share_data["todays_price"]).toFixed(2)} (${Number(
+                share_data["todays_percent"]
             ).toFixed(2)}%)`
         );
 
         // Updates total return
         let total_return = info_card.find(`#total-return-${symbol}`);
         total_return.text(
-            `${Number(data["total_return"]["price_change"]).toFixed(2)} (${Number(
-                change["percent_change"]
+            `${Number(share_data["total_price"]).toFixed(2)} (${Number(
+                share_data["total_percent"]
             ).toFixed(2)}%)`
         );
-
     }
 }
 
@@ -118,7 +119,7 @@ $(".order-btn-dropdown select").change(function () {
     const symbol = $(this)
         .closest(".info-content")
         .find(".order-table")
-        .find("input[id$='crypto_symbol']")
+        .find("input[id$='symbol']")
         .val();
 
     if (option === "market_order") {

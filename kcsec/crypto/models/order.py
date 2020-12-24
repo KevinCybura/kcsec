@@ -14,7 +14,7 @@ class CryptoOrder(BaseModel):
         MARKET = "market_order", _("Market Order")
         LIMIT = "limit_order", _("Limit Order")
 
-    crypto_symbol = models.ForeignKey("crypto.Symbol", on_delete=models.DO_NOTHING)
+    symbol = models.ForeignKey("crypto.Symbol", on_delete=models.DO_NOTHING)
     share = models.ForeignKey("crypto.CryptoShare", on_delete=models.DO_NOTHING, null=True)
     portfolio = models.ForeignKey("core.Portfolio", on_delete=models.DO_NOTHING)
     price = models.DecimalField(max_digits=15, decimal_places=5)

@@ -1,5 +1,8 @@
+from typing import TYPE_CHECKING
+
 from django import forms
-from django.core.validators import MinValueValidator
+from django.core import validators
+from django.core.exceptions import ValidationError
 from django.forms.utils import ErrorList
 
 from kcsec.core.models import Portfolio
@@ -8,16 +11,19 @@ from kcsec.crypto.models import CryptoShare
 from kcsec.crypto.models import Ohlcv
 from kcsec.crypto.models import Symbol
 
+if TYPE_CHECKING:
+    from kcsec.crypto.models.querysets.share import CryptoShareQuerySet
+
 
 class OrderForm(forms.ModelForm):
-    symbol = forms.ModelChoiceField(queryset=Symbol.objects.all(), widget=forms.HiddenInput())
-    portfolio = forms.ModelChoiceField(queryset=Portfolio.objects.all(), widget=forms.HiddenInput())
+    symbol = forms.ModelChoiceField(queryset=Symbol.objects.all(), widget=forms.HiddenInput(), required=True)
+    portfolio = forms.ModelChoiceField(queryset=Portfolio.objects.all(), widget=forms.HiddenInput(), required=True)
     shares = forms.DecimalField(
         widget=forms.NumberInput(attrs={"class": "form-control form-control-sm", "placeholder": 0}),
-        validators=[MinValueValidator(0.0)],
+        validators=[validators.MinValueValidator(0.0)],
     )
     price = forms.DecimalField(
-        validators=[MinValueValidator(0.0)],
+        validators=[validators.MinValueValidator(0.0)],
         widget=forms.NumberInput(attrs={"class": "form-control form-control-sm"}),
         required=False,
         disabled=True,
@@ -28,41 +34,34 @@ class OrderForm(forms.ModelForm):
         fields = ("price", "shares", "portfolio", "symbol", "order_type", "trade_type")
         widgets = {
             "trade_type": forms.RadioSelect(
-                attrs={"class": "btn-trade-type-radio btn btn-secondary", "type": "button"}
+                attrs={"class": "btn-trade-type-radio btn btn-secondary", "type": "button"},
             ),
             "order_type": forms.Select(attrs={"class": "order-btn-select btn btn-secondary", "type": "button"}),
         }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs, error_class=TableErrorList)
+    def clean_trade_type(self):
+        trade_type = self.cleaned_data["trade_type"]
+        if trade_type == CryptoOrder.TradeType.SELL:
+            share: "CryptoShareQuerySet" = self.cleaned_data["portfolio"].cryptoshare_set.filter(
+                symbol=self.cleaned_data["symbol"]
+            )
+            if share.exists() and self.cleaned_data["shares"] > share[0].shares:
+                raise ValidationError("Not enough shares to sell.")
+
+        return trade_type
 
     def save(self, commit=True):
         if self.cleaned_data["order_type"] == CryptoOrder.OrderType.MARKET:
             # If its a market order we just buy at the latest price eventually lets use an orderbook.
-            self.instance.price = self.get_price()
+            latest = Ohlcv.objects.filter(
+                symbol=self.cleaned_data["symbol"],
+                exchange="gemini",
+                time_frame="1m",
+            ).latest()
+
+            self.instance.price = latest.close
 
         self.instance.filled = True
         order: CryptoOrder = super().save(commit=commit)
         CryptoShare.objects.execute_order(order=self.instance)
         return order
-
-    def get_price(self):
-        return (
-            Ohlcv.objects.filter(
-                symbol=self.cleaned_data["symbol"],
-                exchange="gemini",
-                time_frame="1m",
-            )
-            .latest()
-            .close
-        )
-
-
-class TableErrorList(ErrorList):
-    def __str__(self):
-        return self.as_table()
-
-    def as_table(self):
-        if not self:
-            return ""
-        return '<tr class="errorlist">%s</tr>' % "".join(['<div class="error">%s</div>' % e for e in self])

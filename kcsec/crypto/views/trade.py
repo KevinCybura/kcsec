@@ -33,10 +33,11 @@ class TradeView(FormView):
 
     def form_invalid(self, form):
         """If the form is invalid, render the invalid form."""
-        context_data = self.get_context_data(form=form)
+        context_data = self.get_context_data(invalid_form=form)
         return self.render_to_response(context_data)
 
     def get_context_data(self, **kwargs):
+        invalid_form = kwargs.pop("invalid_form", None)
         context = super().get_context_data(form=None, **kwargs)
         symbol = self.request.GET.get("symbol")
 
@@ -63,6 +64,7 @@ class TradeView(FormView):
                     form_class=self.form_class,
                     price=current_price(symbol),
                     midnight_price=midnight_price(symbol),
+                    invalid_form=invalid_form,
                 ),
             ).data
             for symbol in symbols

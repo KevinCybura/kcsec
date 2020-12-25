@@ -1,6 +1,7 @@
 from types import SimpleNamespace
 
 import pytest
+from django.contrib.auth.models import AnonymousUser
 
 from kcsec.core.models.factories.portfolio import PortfolioFactory
 from kcsec.crypto.models.factories.order import CryptoOrderFactory
@@ -28,7 +29,11 @@ def portfolio(crypto_seeds):
 @pytest.fixture
 def trade_view_request():
     return SimpleNamespace(
-        method="POST", POST={"symbol": "BTCUSD"}, FILES={}, user=SimpleNamespace(is_authenticated=False)
+        method="POST",
+        GET={"symbol": "BTCUSD"},
+        POST={"symbol": "BTCUSD"},
+        FILES={},
+        user=AnonymousUser(),
     )
 
 
@@ -36,6 +41,7 @@ def trade_view_request():
 def trade_view_request_authenticated(portfolio):
     return SimpleNamespace(
         method="POST",
+        GET={"symbol": "BTCUSD"},
         POST={"symbol": "BTCUSD"},
         FILES={},
         user=SimpleNamespace(is_authenticated=True, portfolio=portfolio.portfolio),

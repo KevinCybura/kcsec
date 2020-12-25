@@ -72,8 +72,6 @@ class CryptoTemplateContext(serializers.Serializer):
         )
 
     def get_share_data(self, obj):
-        # TODO: This function matches `get_updated_share` in channels/gemini.py figure out a way
-        # to keep the code dry.
         if not obj["user"].is_authenticated:
             return {}
 

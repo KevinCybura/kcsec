@@ -1,9 +1,10 @@
 import datetime
+from decimal import Decimal
 
 import pytest
 
+from kcsec.crypto.models import Ohlcv
 from kcsec.crypto.models.factories.ohlcv import OhlcvFactory
-from kcsec.crypto.models.ohlcv import Ohlcv
 from kcsec.crypto.views import TradeView
 
 
@@ -17,36 +18,71 @@ class TestTradeView:
 
     @pytest.mark.django_db
     def test_portfolio_data(self, trade_view_request_authenticated):
+        portfolio = trade_view_request_authenticated.user.portfolio
         view = TradeView(request=trade_view_request_authenticated)
-        result = view.symbol_data(["BTCUSD"])
-        assert result[0]["symbol"] == "BTCUSD"
-        assert result[0]["share_data"] is not None
-        assert len(result[0]["order_data"]) == 5
-        assert sorted(list(result[0]["form"].fields.keys())) == [
-            "symbol",
-            "order_type",
-            "portfolio",
-            "price",
-            "shares",
-            "trade_type",
-        ]
+        result = view.get_context_data(symbols=["BTCUSD"])
+        assert result["symbols"] == ["BTCUSD"]
+        assert result["navs"] == ["BTCUSD", "ETHUSD", "LTCUSD"]
+        assert result["current_nav"] == "BTCUSD"
+        assert len(result["symbol_data"]) == 1
+        data = result["symbol_data"][0]
+        assert data["form"].initial == {
+            "portfolio": portfolio,
+            "price": round(Ohlcv.objects.filter(symbol="BTCUSD").latest().close, ndigits=2),
+            "symbol": "BTCUSD",
+        }
+        assert len(data["order_data"]) == 5
+        order_data = portfolio.cryptoorder_set.filter(symbol="BTCUSD").values(
+            "created_at", "order_type", "price", "shares", "symbol_id", "trade_type"
+        )
+        assert sorted(data["order_data"], key=lambda o: o["created_at"]) == sorted(
+            list(order_data), key=lambda o: o["created_at"]
+        )
+
+        share = portfolio.cryptoshare_set.get(symbol="BTCUSD")
+        assert data["share_data"]["average_price"] == share.average_price
+        assert data["share_data"]["shares"] == share.shares
+        assert data["share_data"]["symbol"] == share.symbol.id
+        assert data["share_data"]["id"] == share.id
+        assert data["share_data"]["portfolio"] == portfolio.id
+        assert isinstance(data["share_data"]["todays_percent"], Decimal)
+        assert data["share_data"]["todays_percent"] != Decimal("Nan")
+        assert isinstance(data["share_data"]["todays_price"], Decimal)
+        assert data["share_data"]["todays_price"] != Decimal("Nan")
+        assert isinstance(data["share_data"]["total_percent"], Decimal)
+        assert data["share_data"]["total_percent"] != Decimal("Nan")
+        assert isinstance(data["share_data"]["total_price"], Decimal)
+        assert data["share_data"]["total_price"] != Decimal("Nan")
 
     @pytest.mark.django_db
-    def test_portfolio_data_no_user(self, trade_view_request_authenticated, crypto_seeds):
-        trade_view_request_authenticated.user.is_authenticated = False
-        view = TradeView(request=trade_view_request_authenticated)
-        result = view.symbol_data(["BTCUSD"])
-        assert result[0]["symbol"] == "BTCUSD"
-        assert result[0]["share_data"] is None
-        assert result[0]["order_data"] is None
-        assert sorted(list(result[0]["form"].fields.keys())) == [
+    def test_portfolio_data_no_user(self, trade_view_request, crypto_seeds):
+        view = TradeView(request=trade_view_request)
+        result = view.get_context_data(symbols=["BTCUSD"])
+        assert result["symbols"] == ["BTCUSD"]
+        assert result["navs"] == ["BTCUSD", "ETHUSD", "LTCUSD"]
+        assert result["current_nav"] == "BTCUSD"
+        assert result["form"] == None
+        assert len(result["symbol_data"]) == 1
+        data = result["symbol_data"][0]
+        assert data["order_data"] == {}
+        assert data["share_data"] == {}
+        assert data["symbol"] == "BTCUSD"
+        assert list(data.keys()) == [
             "symbol",
-            "order_type",
-            "portfolio",
             "price",
-            "shares",
-            "trade_type",
+            "midnight_price",
+            "percent_change",
+            "price_change",
+            "share_data",
+            "order_data",
+            "form",
         ]
+
+        assert data["form"].initial == {
+            "portfolio": None,
+            "price": round(Ohlcv.objects.filter(symbol="BTCUSD").latest().close, ndigits=2),
+            "symbol": "BTCUSD",
+        }
 
 
 @pytest.mark.django_db

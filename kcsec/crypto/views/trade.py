@@ -37,7 +37,7 @@ class TradeView(FormView):
         return self.render_to_response(context_data)
 
     def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
+        context = super().get_context_data(form=None, **kwargs)
         symbol = self.request.GET.get("symbol")
 
         if symbol and symbol not in self.SYMBOLS:

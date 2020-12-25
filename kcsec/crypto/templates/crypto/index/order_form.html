@@ -1,7 +1,6 @@
 {% block order-form %}
     <div class="form-group">
         {% csrf_token %}
-        {{ symbol.form.errors }}
         <table class="order-table  order-table-{{ symbol.symbol }}">
             <tbody>
             {% for hidden in symbol.form.hidden_fields %}
@@ -19,22 +18,16 @@
         </table>
         <table class="order-error-table">
             <tbody>
-            <tr class="justify-content-center">
-                {% for error in symbol.form.price.errors %}
-                    <td class="alert alert-danger">
-                        {{ symbol.form.price.label_tag }}
-                        <strong>{{ error|escape }}</strong>
-                    </td>
-                {% endfor %}
-            </tr>
-            <tr class="justify-content-center">
-                {% for error in symbol.form.shares.errors %}
-                    <td class="alert alert-danger">
-                        {{ symbol.form.shares.label_tag }}
-                        <strong>{{ error|escape }}</strong>
-                    </td>
-                {% endfor %}
-            </tr>
+            {% for field in symbol.form %}
+                <tr class="justify-content-center">
+                    {% for error in field.errors %}
+                        <td class="alert alert-danger">
+                            <div>{{ field.label_tag }}</div>
+                            <strong>{{ error|escape }}</strong>
+                        </td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
             </tbody>
         </table>
         <div class="text-center">

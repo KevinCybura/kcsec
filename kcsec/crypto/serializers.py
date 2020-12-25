@@ -113,6 +113,9 @@ class CryptoTemplateContext(serializers.Serializer):
 
     @staticmethod
     def get_form(obj):
+        if invalid_form := obj.get("invalid_form"):
+
+            return invalid_form
         if form_class := obj.get("form_class"):
             return form_class(
                 initial={

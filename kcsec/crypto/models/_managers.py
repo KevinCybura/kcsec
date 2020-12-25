@@ -1,7 +1,7 @@
 from psqlextra.manager import PostgresManager
 
-from kcsec.crypto.models._querysets import OhlcvQuerySet
-from kcsec.crypto.models._querysets import SymbolQuerySet
+from kcsec.crypto.models.querysets.ohlcv import OhlcvQuerySet
+from kcsec.crypto.models.querysets.symbol import SymbolQuerySet
 
 
 class OhlcvManager(PostgresManager.from_queryset(OhlcvQuerySet)):

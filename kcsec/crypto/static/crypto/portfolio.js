@@ -9,43 +9,49 @@ socket.onopen = async function (_) {
             symbols: symbol_ids,
         })
     );
-
-    let data = {};
-    let url = new URL("http://localhost:8000/crypto/ohlcv/");
-
-    for await (const symbol_id of symbol_ids) {
-        url.search = new URLSearchParams({
-            asset_id_base: symbol_id.slice(0, 3),
-            asset_id_quote: symbol_id.slice(3),
-            limit: 1,
-            o: "-time_open",
-        }).toString();
-
-        const response = await fetch(url, {method: "GET"});
-        data[symbol_id] = await response.json();
-    }
-    update_price(data, symbol_ids);
 };
 
 socket.onmessage = async function (e) {
     const message = JSON.parse(e.data)["message"];
-    for (const symbol of symbol_ids) {
-        if (!Object.keys(message).includes(symbol)) continue;
-        update_price(message[symbol]["ohlcv"], symbol);
-        $("#info-card-" + symbol)
-            .find(`#${symbol}-percent-change span`)
-            .text(message[symbol]["updated_share"]["percent_change"]);
-    }
+    update_price(message, message["symbol"], true);
 };
 
 socket.onclose = function (_) {
     console.error("Socket closed unexpectedly");
 };
 
-function update_price(data, symbols) {
-    for (const symbol of symbols) {
-        let info_body = $("#" + symbol).find(".symbol-price");
-        info_body.text("$" + Number(data[symbol][0].close).toFixed(2));
+function update_price(data, symbol, is_message = false) {
+    const price = data["ohlcv"] ? data["ohlcv"] : data;
+    let card_body = $("#" + symbol);
+    card_body
+        .find(`#price-${symbol}`)
+        .text("$" + Number(price[0].close).toFixed(2));
+
+    if (is_message) {
+        const share_data = data["share_data"];
+        // Update today's percent and price change.
+        let price = card_body.find(`#symbol-change-${symbol}`);
+        price.text(
+            `${Number(data["price_change"]).toFixed(2)} (${Number(
+                data["percent_change"]
+            ).toFixed(2)}%)`
+        );
+
+        // Updates today's return
+        let todays_return = card_body.find(`#todays-return-${symbol}`);
+        todays_return.text(
+            `${Number(share_data["todays_price"]).toFixed(2)} (${Number(
+                share_data["todays_percent"]
+            ).toFixed(2)}%)`
+        );
+
+        // Updates total return
+        let total_return = card_body.find(`#total-return-${symbol}`);
+        total_return.text(
+            `${Number(share_data["total_price"]).toFixed(2)} (${Number(
+                share_data["total_percent"]
+            ).toFixed(2)}%)`
+        );
     }
 }
 

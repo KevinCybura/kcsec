@@ -18,7 +18,7 @@
             {% for order in symbol.order_data %}
                 <ul class="order-list-items list-group list-group-horizontal justify-content-around">
                     <li class="order-item list-group-item bg-secondary">
-                        {{ order.crypto_symbol_id }} |
+                        {{ order.symbol_id }} |
                         {{ order.order_type }} |
                         {{ order.trade_type }} |
                         Shares: {{ order.shares|floatformat:2 }} |

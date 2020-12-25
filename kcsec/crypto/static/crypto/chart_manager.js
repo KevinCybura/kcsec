@@ -4,7 +4,6 @@ export default class ChartManager {
         id = "ws-symbol",
         cs_series = true,
         area_series = true,
-        applyOptions1 = applyOptions
     ) {
         this.chart_card = document.createElement("div");
         this.symbol = card.getAttribute(id).toString();
@@ -37,7 +36,7 @@ export default class ChartManager {
     }
 
     async update_chart(message) {
-        const coin_data = message[this.symbol]["ohlcv"];
+        const coin_data = message["ohlcv"];
 
         if (coin_data.length === 1) {
             if (this.cs_series) this.candlestickSeries.update(coin_data[0]);

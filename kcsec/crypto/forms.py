@@ -10,7 +10,7 @@ from kcsec.crypto.models import Symbol
 
 
 class OrderForm(forms.ModelForm):
-    crypto_symbol = forms.ModelChoiceField(queryset=Symbol.objects.all(), widget=forms.HiddenInput())
+    symbol = forms.ModelChoiceField(queryset=Symbol.objects.all(), widget=forms.HiddenInput())
     portfolio = forms.ModelChoiceField(queryset=Portfolio.objects.all(), widget=forms.HiddenInput())
     shares = forms.DecimalField(
         widget=forms.NumberInput(attrs={"class": "form-control form-control-sm", "placeholder": 0}),
@@ -25,7 +25,7 @@ class OrderForm(forms.ModelForm):
 
     class Meta:
         model = CryptoOrder
-        fields = ("price", "shares", "portfolio", "crypto_symbol", "order_type", "trade_type")
+        fields = ("price", "shares", "portfolio", "symbol", "order_type", "trade_type")
         widgets = {
             "trade_type": forms.RadioSelect(
                 attrs={"class": "btn-trade-type-radio btn btn-secondary", "type": "button"}
@@ -47,10 +47,14 @@ class OrderForm(forms.ModelForm):
         return order
 
     def get_price(self):
-        return Ohlcv.objects.latest_price(
-            symbol=self.cleaned_data["crypto_symbol"],
-            exchange="gemini",
-            time_frame="1m",
+        return (
+            Ohlcv.objects.filter(
+                symbol=self.cleaned_data["symbol"],
+                exchange="gemini",
+                time_frame="1m",
+            )
+            .latest()
+            .close
         )
 
 

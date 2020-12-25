@@ -1,37 +1,50 @@
-{% extends "core/base.html" %} {% load static %} {% block content %} {% include
-    "core/nav_base.html" %}
+{% extends "core/base.html" %}
+{% load static %}
+{% block content %}
+
+    {% include "core/nav_base.html" %}
 
     <div class="container-fluid">
-        {% for share in shares %}
+        {% for share in data %}
             <div class="i-am-centered">
                 <div class="content-row row justify-content-around">
                     <div class="col-lg-12">
-                        <div class="card share-card" id="{{ share.crypto_symbol_id }}">
+                        <div class="card share-card" id="{{ share.symbol }}">
                             <p class="card-header">
-                                <strong>{{ share.crypto_symbol_id }}</strong>
+                                <strong>{{ share.symbol }}</strong>
                             </p>
                             <div class="card-body">
-                                <p>
-                                    <strong>Current Price:</strong>
-                                    <span class="symbol-price"
-                                    >${{ share.crypto_symbol.price|floatformat:2 }}</span
-                                    >
-                                </p>
-                                <p>
-                                    <strong>Today:</strong>
-                                    <span class="symbol-change"
-                                    >{{ share.crypto_symbol.todays_change }}</span
-                                    >
-                                </p>
+                                <div>
+                                    <strong>Shares</strong>: {{ share.share_data.shares|floatformat:2 }}
+                                </div>
+                                <div>
+                                    <strong>Average price</strong>: {{ share.share_data.average_price|floatformat:2 }}
+                                </div>
+                                <div>
+                                    <strong>Today's return</strong>:
+                                    <span id="todays-return-{{ share.symbol }}">
+                                        ${{ share.share_data.todays_price|floatformat:2 }} ({{ share.share_data.todays_percent|floatformat:2 }}%)
+                                    </span>
+                                </div>
+                                <div>
+                                    <strong>Total return</strong>:
+                                    <span id="total-return-{{ share.symbol }}">
+                                        ${{ share.share_data.total_price|floatformat:2 }} ({{ share.share_data.total_percent|floatformat:2 }}%)
+                                    </span>
+                                </div>
                             </div>
                             <div class="card-footer">
-                                <strong>Shares</strong>: {{ share.shares|floatformat:2 }}
-                                <strong>Average price</strong>: {{ share.average_price|floatformat:2
-                                    }}
-                                <p id="{{ share.crypto_symbol_id }}-percent-change">
-                                    <strong>Percent change</strong>:
-                                    <span>{{ share.percent_change|floatformat:2 }}</span>%
-                                </p>
+                                <div>
+                                    <strong>Current Price</strong>:
+                                    <span id="price-{{ share.symbol }}">
+                                        ${{ share.price|floatformat:2 }}
+                                    </span>
+                                </div>
+                                <div>
+                                    <span id="symbol-change-{{ share.symbol }}">
+                                        ${{ share.price_change|floatformat:2 }} ({{ share.percent_change|floatformat:2 }}%)
+                                        </span>
+                                </div>
                             </div>
                         </div>
                     </div>

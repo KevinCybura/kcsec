@@ -1,6 +1,7 @@
 from types import SimpleNamespace
 
 import pytest
+from django.contrib.auth.models import AnonymousUser
 
 from kcsec.core.models.factories.portfolio import PortfolioFactory
 from kcsec.crypto.models.factories.order import CryptoOrderFactory
@@ -17,9 +18,9 @@ def crypto_seeds():
 @pytest.fixture
 def portfolio(crypto_seeds):
     portfolio = PortfolioFactory()
-    share = CryptoShareFactory(portfolio=portfolio, shares=50.0, crypto_symbol=crypto_seeds.symbols[0])
+    share = CryptoShareFactory(portfolio=portfolio, shares=50.0, symbol=crypto_seeds.symbols[0])
     orders = [
-        CryptoOrderFactory(share=share, shares=10.0, portfolio=portfolio, crypto_symbol=crypto_seeds.symbols[0])
+        CryptoOrderFactory(share=share, shares=10.0, portfolio=portfolio, symbol=crypto_seeds.symbols[0])
         for _ in range(5)
     ]
     return SimpleNamespace(portfolio=portfolio, share=share, order=orders)
@@ -28,7 +29,11 @@ def portfolio(crypto_seeds):
 @pytest.fixture
 def trade_view_request():
     return SimpleNamespace(
-        method="POST", POST={"crypto_symbol": "BTCUSD"}, FILES={}, user=SimpleNamespace(is_authenticated=False)
+        method="POST",
+        GET={"symbol": "BTCUSD"},
+        POST={"symbol": "BTCUSD"},
+        FILES={},
+        user=AnonymousUser(),
     )
 
 
@@ -36,7 +41,8 @@ def trade_view_request():
 def trade_view_request_authenticated(portfolio):
     return SimpleNamespace(
         method="POST",
-        POST={"crypto_symbol": "BTCUSD"},
+        GET={"symbol": "BTCUSD"},
+        POST={"symbol": "BTCUSD"},
         FILES={},
         user=SimpleNamespace(is_authenticated=True, portfolio=portfolio.portfolio),
     )

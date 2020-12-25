@@ -1,4 +1,6 @@
+import datetime
 import logging
+from decimal import Decimal
 from typing import TYPE_CHECKING
 
 import simplejson as json
@@ -6,8 +8,9 @@ from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from django.contrib.auth.models import AnonymousUser
 
-from kcsec.crypto.models import CryptoShare
 from kcsec.crypto.models import Ohlcv
+from kcsec.crypto.serializers import CryptoTemplateContext
+from kcsec.crypto.types import TimeFrame
 
 if TYPE_CHECKING:
     from typing import Union
@@ -15,7 +18,6 @@ if TYPE_CHECKING:
     from django.contrib.auth.models import User
 
     from kcsec.crypto.types import CandleMessage
-    from kcsec.crypto.types import TimeFrame
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +33,11 @@ class SymbolConsumer(AsyncJsonWebsocketConsumer):
 
     @classmethod
     async def encode_json(cls, content):
-        return json.dumps(content)
+        def default(o):
+            if isinstance(o, (datetime.date, datetime.datetime)):
+                return o.isoformat()
+
+        return json.dumps(content, default=default)
 
     async def connect(self):
         self.user = self.scope.get("user")
@@ -48,15 +54,8 @@ class SymbolConsumer(AsyncJsonWebsocketConsumer):
         if message["symbol"] not in self.symbols or message["time_frame"] != TimeFrame.ONE_MINUTE:
             return
 
-        updated_shares = await self.get_updated_share(message["symbol"])
-        change = await self.get_24_hour_difference(message)
-        to_send = {
-            message["symbol"]: {
-                "ohlcv": message["changes"],
-                "updated_share": updated_shares,
-                "24h_change": {"time_frame": message["time_frame"], **change},
-            }
-        }
+        data = await self.get_updated_share(message)
+        to_send = {"symbol": message["symbol"], "ohlcv": message["changes"], **data}
 
         await self.send_json({"message": to_send, "event": "chart"})
 
@@ -75,19 +74,17 @@ class SymbolConsumer(AsyncJsonWebsocketConsumer):
         self.heartbeat_count += 1
 
     @database_sync_to_async
-    def get_updated_share(self, symbol: str) -> dict:
-        if self.user.is_authenticated:
-            share = CryptoShare.objects.filter(crypto_symbol=symbol, portfolio__user=self.user)
-            if share.exists():
-                return {"percent_change": share[0].percent_change}
-        return {}
+    def get_updated_share(self, message: "CandleMessage") -> CryptoTemplateContext.data:
+        midnight_price = Ohlcv.objects.filter_after_midnight(
+            message["symbol"], exchange="gemini", time_frame="1m", delta=datetime.timedelta(hours=5)
+        ).earliest()
 
-    @database_sync_to_async
-    def get_24_hour_difference(self, message: "CandleMessage") -> dict:
-        percent_change, price_change = Ohlcv.objects.one_day_difference(
-            message["symbol"],
-            "gemini",
-            TimeFrame.ONE_MINUTE,
-            message["changes"][-1]["close"],
-        )
-        return {"percent_change": percent_change, "price_change": price_change}
+        return CryptoTemplateContext(
+            instance=dict(
+                symbol=message["symbol"],
+                user=self.user,
+                price=Decimal(message["changes"][-1]["close"]),
+                midnight_price=midnight_price.open,
+                update=True,
+            )
+        ).data

@@ -1,3 +1,6 @@
+from datetime import datetime
+from datetime import timedelta
+
 from django_filters import rest_framework as rf
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -27,9 +30,11 @@ class ChartDataViewSet(GenericViewSet):
         """Queries Open high low close data for charts"""
         return list(
             reversed(
-                Ohlcv.objects.filter_trade_view_chart(symbol, exchange, TimeFrame.ONE_MINUTE)[:1441].values(
-                    "time", "open", "high", "low", "close", "volume", "value"
+                Ohlcv.objects.filter(
+                    time_open__gte=datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
                 )
+                .filter_trade_view_chart(symbol, exchange, TimeFrame.ONE_MINUTE)
+                .values("time", "open", "high", "low", "close", "volume", "value")
             )
         )
 

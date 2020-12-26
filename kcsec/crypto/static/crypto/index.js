@@ -1,6 +1,6 @@
 import ChartManager from "./chart_manager.js";
 
-const cards = Array.from(document.getElementsByClassName("chart"));
+const cards = $("div.chart").toArray();
 
 let charts_managers = cards.map((card) => {
     return new ChartManager(card);

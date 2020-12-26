@@ -1,10 +1,5 @@
 export default class ChartManager {
-    constructor(
-        card,
-        id = "ws-symbol",
-        cs_series = true,
-        area_series = true,
-    ) {
+    constructor(card, id = "ws-symbol", cs_series = true, area_series = true) {
         this.chart_card = document.createElement("div");
         this.symbol = card.getAttribute(id).toString();
         this.chart_card.id = "chart-" + this.symbol;
@@ -19,6 +14,14 @@ export default class ChartManager {
             layout: this.layout,
             timeScale: this.timeScale,
             grid: this.grid,
+            watermark: this.wartermark,
+            handleScale: {
+                axisPressedMouseMove: {
+                    time: true,
+                    price: false
+                },
+
+            },
         });
 
         this.chart.name = card.getAttribute(id);
@@ -57,13 +60,24 @@ export default class ChartManager {
     }
 
     // START OPTIONS
+    get wartermark() {
+        return {
+            color: "rgba(11, 94, 29, 0.4)",
+            visible: true,
+            text: this.symbol,
+            fontSize: 24,
+            horzAlign: "left",
+            vertAlign: "bottom",
+        };
+    }
+
     get priceScale() {
         return {
             autoScale: true,
             borderVisible: true,
             entireTextOnly: true,
             borderColor: "cadetblue",
-            drawTicks: false,
+            drawTicks: true,
             scaleMargins: {
                 top: 0.3,
                 bottom: 0.25,
@@ -82,13 +96,13 @@ export default class ChartManager {
 
     get timeScale() {
         return {
-            rightOffset: 100,
-            barSpacing: 3,
+            rightOffset: 20,
+            barSpacing: 6,
             fixLeftEdge: true,
             lockVisibleTimeRangeOnResize: true,
-            rightBarStaysOnScroll: true,
-            borderVisible: false,
-            borderColor: "#fff000",
+            rightBarStaysOnScroll: false,
+            borderVisible: true,
+            borderColor: "cadetblue",
             visible: true,
             timeVisible: true,
             secondsVisible: false,

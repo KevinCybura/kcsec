@@ -1,0 +1,22 @@
+{% block share %}
+    <div class="card-body">
+        <span>
+            <strong>Shares</strong>: {{ share.share_data.shares|floatformat:2 }}
+        </span> |
+        <span>
+            <strong>Average price</strong>: {{ share.share_data.average_price|floatformat:2 }}
+        </span>  |
+        <span>
+            <strong>Today's return</strong>:
+            <span id="todays-return-{{ share.symbol }}">
+                  ${{ share.share_data.todays_price|floatformat:2 }} ({{ share.share_data.todays_percent|floatformat:2 }}%)
+            </span>
+        </span>  |
+        <span>
+            <strong>Total return</strong>:
+            <span id="total-return-{{ share.symbol }}">
+              ${{ share.share_data.total_price|floatformat:2 }} ({{ share.share_data.total_percent|floatformat:2 }}%)
+            </span>
+        </span>
+    </div>
+{% endblock %}

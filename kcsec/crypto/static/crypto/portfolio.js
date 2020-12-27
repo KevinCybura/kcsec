@@ -55,4 +55,37 @@ function update_price(data, symbol, is_message = false) {
     }
 }
 
-// ============================== End Chart/Sockets ====================
+// ============================== End Sockets ====================
+
+$(document).ready(async function () {
+    const user_id = $("#user_id").text();
+    const csrftoken = Cookies.get("csrftoken");
+    let url = new URL("http://localhost:8000/crypto/chart");
+
+    url.search = new URLSearchParams({
+        user_id: user_id,
+    }).toString();
+
+    const response = await fetch(url, {
+        method: "GET",
+        headers: {
+            "X-CSRFTOKEN": csrftoken,
+        },
+    });
+
+    const data = await response.json();
+
+    let ctx = $("#share-chart").get(0).getContext("2d");
+    new Chart(ctx, {
+        type: "derivedDoughnut",
+        data: data.data,
+        options: {
+            responsive: true,
+            legend: {
+                labels: {
+                    fontColor: "#ccc"
+                }
+            }
+        },
+    });
+});

@@ -1,4 +1,5 @@
 import datetime
+import locale
 from decimal import Decimal
 
 import pytest
@@ -18,6 +19,7 @@ class TestTradeView:
 
     @pytest.mark.django_db
     def test_portfolio_data(self, trade_view_request_authenticated):
+        locale.setlocale(locale.LC_ALL, "")
         portfolio = trade_view_request_authenticated.user.portfolio
         view = TradeView(request=trade_view_request_authenticated)
         result = view.get_context_data(symbols=["BTCUSD"])
@@ -40,19 +42,19 @@ class TestTradeView:
         )
 
         share = portfolio.cryptoshare_set.get(symbol="BTCUSD")
-        assert data["share_data"]["average_price"] == share.average_price
+        assert data["share_data"]["average_price"] == locale.currency(share.average_price, grouping=True)
         assert data["share_data"]["shares"] == share.shares
         assert data["share_data"]["symbol"] == share.symbol.id
         assert data["share_data"]["id"] == share.id
         assert data["share_data"]["portfolio"] == portfolio.id
         assert isinstance(data["share_data"]["todays_percent"], Decimal)
         assert data["share_data"]["todays_percent"] != Decimal("Nan")
-        assert isinstance(data["share_data"]["todays_price"], Decimal)
-        assert data["share_data"]["todays_price"] != Decimal("Nan")
+        assert isinstance(data["share_data"]["todays_price"], str)
+        assert data["share_data"]["todays_price"] != "Nan"
         assert isinstance(data["share_data"]["total_percent"], Decimal)
         assert data["share_data"]["total_percent"] != Decimal("Nan")
-        assert isinstance(data["share_data"]["total_price"], Decimal)
-        assert data["share_data"]["total_price"] != Decimal("Nan")
+        assert isinstance(data["share_data"]["total_price"], str)
+        assert data["share_data"]["total_price"] != "Nan"
 
     @pytest.mark.django_db
     def test_portfolio_data_no_user(self, trade_view_request, crypto_seeds):
@@ -70,6 +72,7 @@ class TestTradeView:
         assert list(data.keys()) == [
             "symbol",
             "price",
+            "formatted_price",
             "midnight_price",
             "percent_change",
             "price_change",

@@ -1,43 +1,40 @@
 import ChartManager from "./chart_manager.js";
+import InfoManager from "./info_manager.js";
 
 const cards = $("div.chart").toArray();
 
-let charts_managers = cards.map((card) => {
-    return new ChartManager(card);
-});
+const managers = cards.reduce(
+    (o, card) =>
+        Object.assign(o, {
+            [card.id]: {
+                info: new InfoManager(card.id, "info-card"),
+                chart: new ChartManager(card),
+            },
+        }),
+    {}
+);
 
 const socket = new WebSocket("ws://" + window.location.host + "/ws/crypto/");
 
 socket.onopen = async function (_) {
     socket.send(
         JSON.stringify({
-            symbols: charts_managers.map((chart) => chart.symbol),
+            symbols: Object.keys(managers),
         })
     );
-    const csrftoken = Cookies.get("csrftoken");
-    for await (const manager of charts_managers) {
-        const response = await fetch("http://localhost:8000/crypto/chart_data/", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": csrftoken,
-            },
-            body: JSON.stringify({symbol: manager.symbol}),
-        });
-        const data = await response.json();
-
-        await manager.build_chart(data);
-        await update_info(data, manager.symbol);
+    for await (const [_, manager] of Object.entries(managers)) {
+        await manager["chart"].init_chart();
     }
 };
 
 socket.onmessage = async function (e) {
     const message = JSON.parse(e.data)["message"];
-    for (const manager of charts_managers) {
-        if (message["symbol"] !== manager.symbol) continue;
-        await manager.update_chart(message);
-        await update_info(message, manager.symbol, true);
-    }
+    const manager = managers[message["symbol"]];
+
+    await manager["chart"].update_chart(message);
+    await manager["info"].update_symbol(message);
+    await manager["info"].update_shares(message);
+    await manager["info"].update_form(message);
 };
 
 socket.onclose = function (_) {
@@ -45,64 +42,10 @@ socket.onclose = function (_) {
 };
 
 $(window).resize(function () {
-    charts_managers.forEach((chart_manager) => {
-        chart_manager.resize();
+    Object.values(managers).forEach((manager) => {
+        manager["chart"].resize();
     });
 });
-
-async function update_info(data, symbol, is_message = false) {
-    const info_card = $(`#info-card-${symbol}`);
-    const price = data["ohlcv"] ? data["ohlcv"] : data;
-
-    // Update main price.
-    info_card
-        .find(`#${symbol}-price`)
-        .text("$" + Number(price[price.length - 1].close).toFixed(2));
-
-    let price_form = info_card.find(`#id_${symbol}_price`);
-    price_form =
-        price_form.length !== 0 ? price_form : info_card.find("#id_price");
-    // Update placeholder price.
-    price_form.attr(
-        "placeholder",
-        "$" + Number(price[price.length - 1].close).toFixed(2)
-    );
-    // Update price if price is not a market_order.
-    if (
-        price_form.find(`#id_${symbol}_order_type :selected`).text() !==
-        "market_order"
-    ) {
-        price_form.val(Number(price[price.length - 1].close).toFixed(2));
-    }
-
-    if (is_message) {
-        // Update today's percent and price change.
-        let symbol_change = info_card.find(`#todays-change-${symbol}`);
-        symbol_change.text(
-            `$${Number(data["price_change"]).toFixed(2)} (${Number(
-                data["percent_change"]
-            ).toFixed(2)}%)`
-        );
-    }
-    if (data["shares"]) {
-        const share_data = data["share_data"];
-        // Updates today's return
-        let todays_return = info_card.find(`#todays-return-${symbol}`);
-        todays_return.text(
-            `${Number(share_data["todays_price"]).toFixed(2)} (${Number(
-                share_data["todays_percent"]
-            ).toFixed(2)}%)`
-        );
-
-        // Updates total return
-        let total_return = info_card.find(`#total-return-${symbol}`);
-        total_return.text(
-            `${Number(share_data["total_price"]).toFixed(2)} (${Number(
-                share_data["total_percent"]
-            ).toFixed(2)}%)`
-        );
-    }
-}
 
 // ============================== End Chart/Sockets ====================
 

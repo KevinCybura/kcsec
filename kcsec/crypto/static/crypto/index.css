@@ -11,17 +11,19 @@ a {
 a:hover {
     color: inherit;
 }
+
 /* Firefox */
 input[type=number] {
-  -moz-appearance: textfield;
+    -moz-appearance: textfield;
 }
 
 /* Chrome, Safari, Edge, Opera */
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+    -webkit-appearance: none;
+    margin: 0;
 }
+
 /*=========================== Chart ================================================*/
 .chart-card {
     align-self: center;
@@ -95,8 +97,12 @@ input::-webkit-inner-spin-button {
 .info-footer {
     /*background-color: #80002d;*/
     font-size: small;
-    padding: 1rem 0 1rem 0;
+    padding: 0;
     text-align: center;
+}
+
+.info-footer p {
+    margin: 0.2rem;
 }
 
 .info-symbol-link-disable {
@@ -136,7 +142,7 @@ input::-webkit-inner-spin-button {
 
 .btn-trade-type-radio {
     margin: 0;
-    padding: 0 ;
+    padding: 0;
     border: 0;
 }
 
@@ -210,24 +216,34 @@ input::-webkit-inner-spin-button {
 /*=========================== Order List ============================================*/
 .order-list {
     width: 80%;
+    margin: 0 auto;
 }
 
 .order-list-toggle {
     width: 20%;
-    margin-left: 3rem;
+    display: block;
+    margin: 0 auto auto 85%;
+}
+
+@media (max-width: 576px) {
+    .order-list-toggle {
+        margin: 0 auto;
+        padding: 0;
+    }
 }
 
 .order-list-div {
     background-color: #80002d;
     width: 100%;
     text-align: center;
-    margin-top: 0.2rem;
+    margin: 1rem 0 0 0;
+    padding: 0.5rem;
 }
 
 
 .order-list-items {
-    margin: 1rem;
-    padding-bottom: 1rem;
+    margin: 0.5rem;
+    padding-bottom: 0.5rem;
     text-align: center;
 }
 

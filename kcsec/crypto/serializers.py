@@ -1,3 +1,4 @@
+import locale
 from datetime import datetime
 from typing import TYPE_CHECKING
 
@@ -52,12 +53,18 @@ class OhlcvSerializer(serializers.ModelSerializer):
 class CryptoTemplateContext(serializers.Serializer):
     symbol = serializers.CharField()
     price = serializers.FloatField()
+    formatted_price = serializers.SerializerMethodField()
     midnight_price = serializers.FloatField()
     percent_change = serializers.SerializerMethodField()
     price_change = serializers.SerializerMethodField()
     share_data = serializers.SerializerMethodField()
     order_data = serializers.SerializerMethodField(required=False)
     form = serializers.SerializerMethodField(required=False)
+
+    @staticmethod
+    def get_formatted_price(obj):
+        locale.setlocale(locale.LC_ALL, "")
+        return locale.currency(obj["price"], grouping=True)
 
     @staticmethod
     def get_order_data(obj):
@@ -83,10 +90,12 @@ class CryptoTemplateContext(serializers.Serializer):
 
         share: "CryptoShare" = share[0]
 
+        equity = obj["price"] * share.shares
+
         total_price = (obj["price"] - share.average_price) * share.shares
         total_percent = share.average_percent_change(obj["price"])
 
-        todays_price = self.get_price_change(obj) * share.shares
+        todays_price = (obj["price"] - obj["midnight_price"]) * share.shares
         todays_percent = self.get_percent_change(obj)
 
         # If the share row was created today set todays price/percent change to change since purchase
@@ -95,12 +104,16 @@ class CryptoTemplateContext(serializers.Serializer):
             todays_price = total_price
             todays_percent = total_percent
 
+        locale.setlocale(locale.LC_ALL, "")
+        model = model_to_dict(share)
+        model["average_price"] = locale.currency(model["average_price"], grouping=True)
         return {
-            "total_price": total_price,
+            "total_price": locale.currency(total_price, grouping=True),
             "total_percent": total_percent,
-            "todays_price": todays_price,
+            "todays_price": locale.currency(todays_price, grouping=True),
             "todays_percent": todays_percent,
-            **model_to_dict(share),
+            "equity": locale.currency(equity, grouping=True),
+            **model,
         }
 
     @staticmethod
@@ -109,12 +122,11 @@ class CryptoTemplateContext(serializers.Serializer):
 
     @staticmethod
     def get_price_change(obj):
-        return obj["price"] - obj["midnight_price"]
+        return locale.currency(obj["price"] - obj["midnight_price"], grouping=True)
 
     @staticmethod
     def get_form(obj):
         if invalid_form := obj.get("invalid_form"):
-
             return invalid_form
         if form_class := obj.get("form_class"):
             return form_class(

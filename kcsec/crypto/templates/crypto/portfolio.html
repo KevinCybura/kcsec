@@ -22,12 +22,12 @@
                         <div>
                             <strong>Current Price</strong>:
                             <span id="price-{{ share.symbol }}">
-                                        ${{ share.price|floatformat:2 }}
+                                        {{ share.price }}
                             </span>
                         </div>
                         <div>
                             <span id="symbol-change-{{ share.symbol }}">
-                            ${{ share.price_change|floatformat:2 }} ({{ share.percent_change|floatformat:2 }}%)
+                            {{ share.price_change }} ({{ share.percent_change|floatformat:2 }}%)
                             </span>
                         </div>
                     </div>
@@ -38,6 +38,7 @@
 
     <link rel="stylesheet" href="{% static 'crypto/portfolio.css' %}"/>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.bundle.min.js"></script>
+    <script src="{% static 'crypto/info_manager.js' %}" type="module"></script>
     <script src="{% static 'crypto/pie_chart.js' %}" type="module"></script>
     <script src="{% static 'crypto/portfolio.js' %}" type="module"></script>
 {% endblock %}

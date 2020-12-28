@@ -1,7 +1,7 @@
 export default class ChartManager {
     constructor(card, id = "ws-symbol", cs_series = true, area_series = true) {
         this.chart_card = document.createElement("div");
-        this.symbol = card.getAttribute(id).toString();
+        this.symbol = card.id;
         this.chart_card.id = "chart-" + this.symbol;
 
         card.appendChild(this.chart_card);
@@ -18,9 +18,8 @@ export default class ChartManager {
             handleScale: {
                 axisPressedMouseMove: {
                     time: true,
-                    price: false
+                    price: false,
                 },
-
             },
         });
 
@@ -31,6 +30,19 @@ export default class ChartManager {
         if (this.cs_series)
             this.candlestickSeries = this.chart.addCandlestickSeries();
         if (this.area_series) this.areaSeries = this.chart.addAreaSeries();
+    }
+
+    async init_chart() {
+        const response = await fetch("http://localhost:8000/crypto/chart_data/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": Cookies.get("csrftoken"),
+            },
+            body: JSON.stringify({symbol: this.symbol}),
+        });
+        const data = await response.json();
+        await this.build_chart(data);
     }
 
     async build_chart(data) {

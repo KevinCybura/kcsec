@@ -4,8 +4,14 @@ FROM python:3.9.0-slim as base
 # libpq-dev is required to install psycopg2-binary
 # curl to install vendored poetry
 RUN apt-get update && \
-    apt-get install git curl libpq-dev gcc -y && \
+    apt-get install git curl libpq-dev locales gcc -y && \
     apt-get clean
+
+RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
+    locale-gen
+ENV LC_ALL en_US.UTF-8
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US:en
 
 # Set the working directory
 WORKDIR /app
@@ -15,7 +21,7 @@ ENV S3_STORAGE_BACKEND=1
 # Unbuffer python so that we ensure we get all of the logs
 ENV PYTHONUNBUFFERED=1
 # Set the poetry version
-ENV POETRY_VERSION=1.0.5
+ENV POETRY_VERSION=1.1.4
 # Add the poetry folder to the PATH
 ENV PATH="/root/.poetry/bin:$PATH"
 
@@ -37,4 +43,4 @@ RUN if [ "$install_dev" = "true" ] ; then poetry install ; else poetry install -
 # Add everything
 ADD . .
 
-
+ENTRYPOINT ["sh", "docker-entrypoint.sh"]

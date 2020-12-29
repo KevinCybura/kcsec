@@ -29,22 +29,14 @@ socket.onclose = function (_) {
     console.error("Socket closed unexpectedly");
 };
 
-
 // ============================== End Sockets ====================
 
 $(document).ready(async function () {
-    const user_id = $("#user_id").text();
-    const csrftoken = Cookies.get("csrftoken");
-    let url = new URL("http://localhost:8000/crypto/chart");
-
-    url.search = new URLSearchParams({
-        user_id: user_id,
-    }).toString();
-
+    const url = "/crypto/chart?user_id=" + $("#user_id").text();
     const response = await fetch(url, {
         method: "GET",
         headers: {
-            "X-CSRFTOKEN": csrftoken,
+            "X-CSRFTOKEN": Cookies.get("csrftoken"),
         },
     });
 

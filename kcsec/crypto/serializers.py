@@ -63,7 +63,7 @@ class CryptoTemplateContext(serializers.Serializer):
 
     @staticmethod
     def get_formatted_price(obj):
-        locale.setlocale(locale.LC_ALL, "")
+        locale.setlocale(locale.LC_ALL, "en_US.UTF-8")
         return locale.currency(obj["price"], grouping=True)
 
     @staticmethod
@@ -104,7 +104,7 @@ class CryptoTemplateContext(serializers.Serializer):
             todays_price = total_price
             todays_percent = total_percent
 
-        locale.setlocale(locale.LC_ALL, "")
+        locale.setlocale(locale.LC_ALL, "en_US.UTF-8")
         model = model_to_dict(share)
         model["average_price"] = locale.currency(model["average_price"], grouping=True)
         return {

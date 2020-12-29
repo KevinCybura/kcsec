@@ -1,5 +1,5 @@
 export default class ChartManager {
-    constructor(card, id = "ws-symbol", cs_series = true, area_series = true) {
+    constructor(card, cs_series = true, area_series = true) {
         this.chart_card = document.createElement("div");
         this.symbol = card.id;
         this.chart_card.id = "chart-" + this.symbol;
@@ -23,7 +23,7 @@ export default class ChartManager {
             },
         });
 
-        this.chart.name = card.getAttribute(id);
+        this.chart.name = card.id;
         this.cs_series = cs_series;
         this.area_series = area_series;
 
@@ -33,7 +33,7 @@ export default class ChartManager {
     }
 
     async init_chart() {
-        const response = await fetch("http://localhost:8000/crypto/chart_data/", {
+        const response = await fetch("/crypto/chart_data/", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

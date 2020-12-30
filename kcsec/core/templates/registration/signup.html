@@ -1,14 +1,30 @@
 {% extends "core/base.html" %}
-
+{% load static %}
 {% block content %}
     {% include "core/nav_base.html" %}
-    <div class="container-fluid">
-        <h2>Signup</h2>
+    <div class="reg-div container-fluid">
+    <div class="row justify-content-around">
+        <h2>Sign Up</h2>
+    </div>
+    <div class="row justify-content-center">
         <p>{{ errors }}</p>
-        <form method="post">
+        <form class="justify-content-center" method="post">
             {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit">Sign up</button>
+            {% for field in form %}
+            <div>
+                {{ field.label_tag }}<br/>
+                {{ field }}
+                {% if field.help_text %}
+                    <small style="color: grey">{{ field.help_text }}</small>
+                {% endif %}
+                {% for error in field.errors %}
+                    <p style="color: red">{{ error }}</p>
+                {% endfor %}
+                </div>
+        {% endfor %}
+            <button class="btn btn-secondary" type="submit">Sign up</button>
         </form>
     </div>
+    <link rel="stylesheet" href="{% static 'registration/base.css' %}"/>
 {% endblock %}
+</div>

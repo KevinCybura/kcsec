@@ -10,7 +10,6 @@ from kcsec.core.forms import RegisterForm
 
 
 def home(request):
-    # return render(request, "core/home.html")
     return redirect(reverse_lazy("crypto"))
 
 
@@ -18,4 +17,4 @@ class UserAuthView(CreateView):
     form_class = RegisterForm
     initial = {}
     template_name = "registration/signup.html"
-    success_url = reverse_lazy("home")
+    success_url = reverse_lazy("login")

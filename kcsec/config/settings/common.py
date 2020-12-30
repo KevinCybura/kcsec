@@ -180,6 +180,10 @@ STATIC_URL = "/static/"
 
 STATIC_ROOT = Path(BASE_DIR, "staticfiles")
 
+SITE_ROOT = os.path.dirname(os.path.realpath(__file__))
+
+STATICFILES_DIRS = (Path(SITE_ROOT, STATIC_URL),)
+
 MEDIA_ROOT = Path(BASE_DIR, "media")
 
 REST_FRAMEWORK = {

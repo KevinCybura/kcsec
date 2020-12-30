@@ -13,9 +13,9 @@ class Command(BaseCommand):
     crypto_currencies = ["BTC", "ETH", "LTC"]
 
     def handle(self, *args, **options) -> None:
-        logger.info("Running crypto_seeds")
+        print("Running crypto_seeds")
         try:
             crypto_seed(self.crypto_currencies)
         except IntegrityError:
-            logger.warning("Seeds already run")
-        logger.info("Finished crypto_seeds")
+            print("Seeds already run")
+        print("Finished crypto_seeds")

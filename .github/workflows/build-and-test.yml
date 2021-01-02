@@ -1,4 +1,4 @@
-name: Kcsec
+name: Build and test
 on:
   push:
     branches:
@@ -8,22 +8,41 @@ on:
       - master
 jobs:
   build-and-test:
+    env:
+      DJANGO_SETTINGS_MODULE: kcsec.config.settings.test
+
     runs-on: ubuntu-20.04
+    services:
+      # Label used to access the service container
+      postgres:
+        # Docker Hub image
+        image: postgres:12.5
+        # Provide the password for postgres
+        env:
+          POSTGRES_DB: kcsec
+          POSTGRES_USER: kcsec
+          POSTGRES_HOST_AUTH_METHOD: trust  # need this to run without password
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          # Maps tcp port 5432 on service container to the host
+          - 5432:5432
+
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-        with:
-          python-version: 3.9
-
-      - name: Setup Postgres
-        uses: harmon758/postgresql-action@v1
-        with:
-          postgresql version: 11
-          postgresql db: kcsec
-          postgresql user: kcsec
-
       - name: Start Redis
         uses: supercharge/redis-github-action@1.1.0
+
+      - name: Checkout branch
+        uses: actions/checkout@v2
+
+      - name: Setup Python 3.9
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
 
       - name: Install Poetry
         uses: abatilo/actions-poetry@v2.0.0

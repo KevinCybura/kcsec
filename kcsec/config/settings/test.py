@@ -8,8 +8,8 @@ DATABASES = {
         "NAME": "kcsec",
         "USER": "kcsec",
         "PASSWORD": "",
-        "HOST": os.environ.get("POSTGRES_HOST", "localhost"),
-        "PORT": os.environ.get("POSTGRES_PORT", "5432"),
+        "HOST": os.getenv("POSTGRES_HOST", "localhost"),
+        "PORT": os.getenv("POSTGRES_PORT", "5432"),
         "TEST": {"NAME": "test_kcsec"},
     }
 }

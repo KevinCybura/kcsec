@@ -2,7 +2,7 @@
 set -e
 
 run_dev() {
-  exec poetry run ./manage.py runserver 0.0.0.0:8000
+  exec poetry run daphne -b 0.0.0.0 -p 8000 kcsec.config.asgi:application
 }
 
 run_client() {

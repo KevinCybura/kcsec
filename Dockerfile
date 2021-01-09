@@ -40,7 +40,10 @@ RUN poetry run pip install -U pip
 RUN if [ "$install_dev" = "true" ] ; then poetry install ; else poetry install --ansi --no-dev ; fi && \
     rm -rf ~/.cache
 
+
 # Add everything
 ADD . .
+
+RUN DJANGO_SETTINGS_MODULE=kcsec.config.settings.docker poetry run ./manage.py collectstatic --no-input
 
 ENTRYPOINT ["sh", "docker-entrypoint.sh"]

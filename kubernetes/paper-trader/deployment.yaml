@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paper-trader
+  labels:
+    pod: paper-trader
+spec:
+  selector:
+    matchLabels:
+      pod: paper-trader
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        pod: paper-trader
+    spec:
+      containers:
+        - name: paper-trader
+          image: kevincybura/kcsec:local
+          command: [ "./docker-entrypoint.sh" ]
+          args: [ "dev" ]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+          ports:
+            - containerPort: 8000
+          env:
+            - name: POSTGRES_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: postgres-name
+
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: postgres-user
+
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: postgres-password
+
+            - name: POSTGRES_HOST
+              value: postgres-service
+
+            - name: DJANGO_SETTINGS_MODULE
+              value: kcsec.config.settings.docker
+
+            - name: REDIS_HOST
+              value: redis-service

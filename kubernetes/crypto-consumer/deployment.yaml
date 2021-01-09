@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crypto-consumer
+  labels:
+    pod: crypto-consumer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      pod: crypto-consumer
+  template:
+    metadata:
+      labels:
+        pod: crypto-consumer
+    spec:
+      containers:
+        - name: crypto-consumer
+          image: kevincybura/kcsec:local
+          command: [ "./docker-entrypoint.sh" ]
+          args: [ "client" ]
+          resources:
+            requests:
+              cpu: 200m
+              memory: 200Mi
+          ports:
+            - containerPort: 8001
+          env:
+            - name: POSTGRES_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: postgres-name
+
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: postgres-user
+
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: postgres-password
+
+            - name: POSTGRES_HOST
+              value: postgres-service
+
+            - name: DJANGO_SETTINGS_MODULE
+              value: kcsec.config.settings.docker
+
+            - name: REDIS_HOST
+              value: redis-service

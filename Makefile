@@ -55,3 +55,30 @@ build-no-cache:
 dc-up:
 	docker start kcsec-db
 	docker-compose up web redis minio migrate-kcsec pushgateway
+
+minify-css:
+	find kcsec/ -type f \
+		-name "*.css" ! -name "*.min.*" \
+		-exec echo {} \; \
+		-exec uglifycss --output {}.min {} \;
+
+minify-js:
+	find kcsec/ -type f \
+		-name "*.js" ! -name "*.min.*" ! -name "vfs_fonts*" \
+		-exec echo {} \; \
+		-exec uglifyjs -o {}.min {} \;
+
+minify-replace-js:
+	find kcsec/ -type f \
+		-name "*.js" ! -name "*.min.*" ! -name "vfs_fonts*" \
+		-exec echo {} \; \
+		-exec uglifyjs -o {}.min {} \; \
+		-exec rm {} \; \
+		-exec mv {}.min {} \;
+minify-replace-css:
+	find css/ -type f \
+		-name "*.css" ! -name "*.min.*" \
+		-exec echo {} \; \
+		-exec uglifycss --output {}.min {} \; \
+		-exec rm {} \; \
+		-exec mv {}.min {} \;

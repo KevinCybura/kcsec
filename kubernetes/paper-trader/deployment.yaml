@@ -15,23 +15,22 @@ spec:
         pod: paper-trader
     spec:
       containers:
-        - name: paper-trader
-          image: kevincybura/kcsec:local
-          command: [ "./docker-entrypoint.sh" ]
-          args: [ "dev" ]
+        - name: backend
+          imagePullPolicy: Always
+          image: kevincybura/kcsec:latest
+          command: ["./docker-entrypoint.sh"]
+          args: [ "server" ]
           resources:
             requests:
               cpu: 100m
               memory: 100Mi
           ports:
             - containerPort: 8000
+              name: gunicorn
+          envFrom:
+            - configMapRef:
+                name: paper-trader-config
           env:
-            - name: POSTGRES_NAME
-              valueFrom:
-                secretKeyRef:
-                  name: postgres-credentials
-                  key: postgres-name
-
             - name: POSTGRES_USER
               valueFrom:
                 secretKeyRef:
@@ -44,11 +43,3 @@ spec:
                   name: postgres-credentials
                   key: postgres-password
 
-            - name: POSTGRES_HOST
-              value: postgres-service
-
-            - name: DJANGO_SETTINGS_MODULE
-              value: kcsec.config.settings.docker
-
-            - name: REDIS_HOST
-              value: redis-service

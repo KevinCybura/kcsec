@@ -1,32 +1,32 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: crypto-consumer
+  name: django-channels
   labels:
-    pod: crypto-consumer
+    pod: django-channels
 spec:
-  replicas: 1
   selector:
     matchLabels:
-      pod: crypto-consumer
+      pod: django-channels
+  replicas: 1
   template:
     metadata:
       labels:
-        pod: crypto-consumer
+        pod: django-channels
     spec:
       containers:
         - name: backend
           imagePullPolicy: Always
           image: kevincybura/kcsec:latest
-          command: [ "./docker-entrypoint.sh" ]
-          args: [ "consumer" ]
+          command: ["./docker-entrypoint.sh"]
+          args: [ "channels" ]
           resources:
             requests:
               cpu: 100m
               memory: 100Mi
-            limits:
-              memory: 200Mi
-              cpu: 150m
+          ports:
+            - containerPort: 8001
+              name: daphne
           envFrom:
             - configMapRef:
                 name: paper-trader-config

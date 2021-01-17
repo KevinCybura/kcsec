@@ -16,8 +16,6 @@ ENV LANGUAGE en_US:en
 # Set the working directory
 WORKDIR /app
 
-# Enable storing logs to S3
-ENV S3_STORAGE_BACKEND=1
 # Unbuffer python so that we ensure we get all of the logs
 ENV PYTHONUNBUFFERED=1
 # Set the poetry version
@@ -44,6 +42,4 @@ RUN if [ "$install_dev" = "true" ] ; then poetry install ; else poetry install -
 # Add everything
 ADD . .
 
-RUN DJANGO_SETTINGS_MODULE=kcsec.config.settings.docker poetry run ./manage.py collectstatic --no-input
-
-ENTRYPOINT ["sh", "docker-entrypoint.sh"]
+ENTRYPOINT ["sh", "./docker-entrypoint.sh"]

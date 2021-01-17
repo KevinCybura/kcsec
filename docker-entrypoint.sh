@@ -1,12 +1,17 @@
 #!/bin/sh
 set -e
 
-run_dev() {
-  exec poetry run daphne -b 0.0.0.0 -p 8000 kcsec.config.asgi:application
+run_server() {
+  DJANGO_SETTINGS_MODULE=kcsec.config.settings.docker poetry run ./manage.py collectstatic --no-input
+  poetry run gunicorn -b 0.0.0.0 -p 8000 --workers 3 kcsec.config.wsgi:application
+}
+
+run_channels() {
+  poetry run daphne -b 0.0.0.0 -p 8001 kcsec.config.asgi:application
 }
 
 run_client() {
-  exec poetry run ./manage.py ws_client
+  poetry run ./manage.py ws_client
 }
 
 run_migrate() {
@@ -15,9 +20,11 @@ run_migrate() {
 }
 
 run () {
-  if [ "$1" = "dev" ]; then
-    run_dev
-  elif [ "$1" = "client" ]; then
+  if [ "$1" = "server" ]; then
+    run_server
+  elif [ "$1" = "channels" ]; then
+    run_channels
+  elif [ "$1" = "consumer" ]; then
     run_client
   elif [ "$1" = "migrate" ]; then
     run_migrate

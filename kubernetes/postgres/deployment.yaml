@@ -15,6 +15,7 @@ spec:
     spec:
       containers:
         - name: postgres-container
+          imagePullPolicy: Always
           image: postgres:12.5
           env:
             - name: POSTGRES_USER
@@ -30,10 +31,8 @@ spec:
                   name: postgres-credentials
 
             - name: POSTGRES_DB
-              valueFrom:
-                secretKeyRef:
-                  key: postgres-name
-                  name: postgres-credentials
+              value: paper-trader-db
+
           ports:
             - containerPort: 5432
           volumeMounts:

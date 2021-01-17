@@ -169,9 +169,9 @@ USE_TZ = True
 
 SITE_ROOT = os.path.dirname(os.path.realpath(__file__))
 
-STATIC_URL = "/static/"
+STATIC_URL = os.getenv("STATIC_URL", "/static/")
 
-STATIC_ROOT = Path(BASE_DIR, "staticfiles")
+STATIC_ROOT = Path(BASE_DIR, "static/")
 
 STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.FileSystemFinder",

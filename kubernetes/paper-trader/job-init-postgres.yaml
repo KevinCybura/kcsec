@@ -7,32 +7,24 @@ spec:
     spec:
       containers:
         - name: paper-trader
-          image: kevincybura/kcsec:local
+          image: kevincybura/kcsec:latest
+          command: [ "./docker-entrypoint.sh" ]
           args: [ "migrate" ]
+          envFrom:
+            - configMapRef:
+                name: paper-trader-config
           env:
             - name: POSTGRES_USER
               valueFrom:
                 secretKeyRef:
-                  key: postgres-user
                   name: postgres-credentials
+                  key: postgres-user
 
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
+                  name: postgres-credentials
                   key: postgres-password
-                  name: postgres-credentials
-
-            - name: POSTGRES_NAME
-              valueFrom:
-                secretKeyRef:
-                  key: postgres-name
-                  name: postgres-credentials
-
-            - name: POSTGRES_HOST
-              value: postgres-service
-
-            - name: DJANGO_SETTINGS_MODULE
-              value: kcsec.config.settings.docker
-
       restartPolicy: Never
   backoffLimit: 5
+

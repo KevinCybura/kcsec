@@ -3,14 +3,13 @@ kind: Service
 metadata:
   name: crypto-consumer-service
   labels:
-    pod: crypto-consumer
-    tier: frontend
+    pod: crypto-consumer-service
+    tier: backend
 spec:
   selector:
-    pod: crypto-consumer
+    pod: crypto-consumer-service
   type: NodePort
   ports:
     - protocol: TCP
-      port: 8001
-      targetPort: 8001
-      nodePort: 30007
+      port: 8002
+      targetPort: 8002

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: paper-trader-service
+  labels:
+    pod: paper-trader
+    tier: frontend
+spec:
+  selector:
+    pod: paper-trader
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000

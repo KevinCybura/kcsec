@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paper-trader
+  labels:
+    pod: paper-trader
+spec:
+  selector:
+    matchLabels:
+      pod: paper-trader
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        pod: paper-trader
+    spec:
+      containers:
+        - name: backend
+          imagePullPolicy: Always
+          image: kevincybura/kcsec:latest
+          command: ["./docker-entrypoint.sh"]
+          args: [ "server" ]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+          ports:
+            - containerPort: 8000
+              name: gunicorn
+          envFrom:
+            - configMapRef:
+                name: paper-trader-config
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: postgres-user
+
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: postgres-password
+

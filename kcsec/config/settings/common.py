@@ -35,8 +35,8 @@ INSTALLED_APPS = [
     "kcsec.core",
     "kcsec.crypto",
     "kcsec.securities",
-    "django.contrib.staticfiles",
     "django.contrib.admin",
+    "django.contrib.staticfiles",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -132,15 +132,6 @@ ROOT_URLCONF = "kcsec.config.urls"
 # WSGI_APPLICATION = "kcsec.config.wsgi.application"
 ASGI_APPLICATION = "kcsec.config.routing.application"
 
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [("127.0.0.1", 6379)],
-            "expiry": 10,
-        },
-    }
-}
 
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
@@ -176,13 +167,16 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
-STATIC_URL = "/static/"
-
-STATIC_ROOT = Path(BASE_DIR, "staticfiles")
-
 SITE_ROOT = os.path.dirname(os.path.realpath(__file__))
 
-STATICFILES_DIRS = (Path(SITE_ROOT, STATIC_URL),)
+STATIC_URL = os.getenv("STATIC_URL", "/static/")
+
+STATIC_ROOT = Path(BASE_DIR, "static/")
+
+STATICFILES_FINDERS = [
+    "django.contrib.staticfiles.finders.FileSystemFinder",
+    "django.contrib.staticfiles.finders.AppDirectoriesFinder",
+]
 
 MEDIA_ROOT = Path(BASE_DIR, "media")
 
@@ -194,18 +188,33 @@ REST_FRAMEWORK = {
     ],
 }
 
+LOGIN_REDIRECT_URL = "home"
+
+LOGOUT_REDIRECT_URL = "home"
+
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
+REDIS_PORT = os.getenv("REDIS_PORT", 6379)
+
+REDIS_URL = "redis://{host}:{port}/1".format(host=REDIS_HOST, port=REDIS_PORT)
+
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/1",
+        "LOCATION": REDIS_URL,
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },
     }
 }
 
-LOGIN_REDIRECT_URL = "home"
-
-LOGOUT_REDIRECT_URL = "home"
-
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [(REDIS_HOST, REDIS_PORT)],
+            "expiry": 10,
+        },
+    }
+}

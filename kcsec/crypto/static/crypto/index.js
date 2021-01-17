@@ -14,7 +14,7 @@ const managers = cards.reduce(
     {}
 );
 
-const socket = new WebSocket("ws://" + window.location.host + "/ws/crypto/");
+const socket = new WebSocket("wss://" + window.location.host + "/ws/crypto/");
 
 socket.onopen = async function (_) {
     socket.send(

@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crypto-consumer
+  labels:
+    pod: crypto-consumer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      pod: crypto-consumer
+  template:
+    metadata:
+      labels:
+        pod: crypto-consumer
+    spec:
+      containers:
+        - name: backend
+          imagePullPolicy: Always
+          image: kevincybura/kcsec:latest
+          command: [ "./docker-entrypoint.sh" ]
+          args: [ "consumer" ]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+            limits:
+              memory: 200Mi
+              cpu: 150m
+          envFrom:
+            - configMapRef:
+                name: paper-trader-config
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: postgres-user
+
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: postgres-password
+

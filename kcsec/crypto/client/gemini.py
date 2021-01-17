@@ -1,6 +1,5 @@
 import json
 import logging
-from decimal import Decimal
 from typing import TYPE_CHECKING
 
 import websockets

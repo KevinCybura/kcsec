@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: paper-trader-config
+data:
+  POSTGRES_HOST:  postgres-service
+  POSTGRES_NAME: paper-trader-db
+  DJANGO_SETTINGS_MODULE: kcsec.config.settings.docker
+  REDIS_HOST: redis-service
+  DEBUG: "False"

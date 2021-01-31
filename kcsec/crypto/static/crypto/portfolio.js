@@ -7,7 +7,8 @@ const info_managers = cards.reduce(
     {}
 );
 
-const socket = new WebSocket("wss://" + window.location.host + "/ws/crypto/");
+const ws_scheme = window.location.protocol  === "https:" ? "wss" : "ws";
+const socket = new WebSocket(ws_scheme + "://" + window.location.host + "/ws/crypto/");
 
 socket.onopen = async function (_) {
     socket.send(

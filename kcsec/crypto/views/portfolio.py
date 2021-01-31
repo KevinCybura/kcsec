@@ -16,7 +16,7 @@ class PortfolioView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        symbols = self.request.user.portfolio.cryptoshare_set.all().values_list("symbol_id", flat=True)
+        symbols = self.request.user.portfolio_namespace.cryptoshare_set.all().values_list("symbol_id", flat=True)
 
         def current_price(sym):
             return Ohlcv.objects.filter(symbol=sym, exchange="gemini", time_frame="1m").latest().close

@@ -18,20 +18,23 @@ export default class InfoManager {
     }
 
     async update_shares(data) {
+        if (!data["share_data"]) {
+            return;
+        }
         const share_data = data["share_data"];
         // Updates today's return
-        let todays_return = this.component.find(`#todays-return-${this.symbol}`);
-        todays_return.text(
-            this.price_percent(
-                share_data["todays_price"],
-                share_data["todays_percent"]
-            )
+
+        this._update_price_percent(
+            `#todays-return-${this.symbol}`,
+            share_data["todays_price"],
+            share_data["todays_percent"]
         );
 
         // Updates total return
-        let total_return = this.component.find(`#total-return-${this.symbol}`);
-        total_return.text(
-            this.price_percent(share_data["total_price"], share_data["total_percent"])
+        this._update_price_percent(
+            `#total-return-${this.symbol}`,
+            share_data["total_price"],
+            share_data["total_percent"]
         );
     }
 
@@ -46,5 +49,10 @@ export default class InfoManager {
         ) {
             price_form.val(data["price"]);
         }
+    }
+
+    _update_price_percent(tag, price, percent) {
+        let total_return = this.component.find(tag);
+        total_return.text(this.price_percent(price, percent));
     }
 }

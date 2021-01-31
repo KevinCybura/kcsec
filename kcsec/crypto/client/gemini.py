@@ -9,6 +9,8 @@ from websockets.exceptions import InvalidMessage
 
 from kcsec.crypto.client import Consumer
 from kcsec.crypto.client.order_book import OrderBook
+from kcsec.crypto.models import CryptoOrder
+from kcsec.crypto.models import CryptoShare
 from kcsec.crypto.models import Ohlcv
 from kcsec.crypto.models import Symbol
 from kcsec.crypto.types import TimeFrame
@@ -88,6 +90,7 @@ class GeminiConsumer(Consumer):
 
         logger.info(message)
         await self.channel_layer.group_send("crypto", {"type": "update_data", "message": message})
+        await self.fill_orders(message)
 
     async def handle_l2_updates(self, message: "L2Message"):
         if not self.order_book.get(message["symbol"]):
@@ -101,6 +104,10 @@ class GeminiConsumer(Consumer):
             await self.channel_layer.group_send(
                 "crypto", {"type": "update.order_book", "message": order_book.order_book}
             )
+
+    async def fill_orders(self, message: "CandleMessage"):
+        # TODO fill unfilled orders
+        pass
 
     @classmethod
     def convert(cls, changes: "MessageChanges") -> list["Change"]:

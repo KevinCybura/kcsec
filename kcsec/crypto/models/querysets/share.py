@@ -32,17 +32,17 @@ class CryptoShareQuerySet(PostgresQuerySet):
                 )
                 return share, True
 
-            # If its a sell set quantity to a negative value.
-            if order.trade_type == order.TradeType.SELL:
-                order.shares *= -1
-                if order.shares + share.shares == 0:
-                    return share.delete()
+            shares_traded = order.shares
+            # If its a buy add shares and update average_price.
+            if order.trade_type == order.TradeType.BUY:
+                total = (share.average_price * share.shares) + (order.price * shares_traded)
 
-            total = (share.average_price * share.shares) + (order.price * order.shares)
+                share.average_price = total / (shares_traded + share.shares)
 
-            share.average_price = total / (order.shares + share.shares)
-
-            share.shares += order.shares
+                share.shares += shares_traded
+            # If its a sell subtract the shares
+            else:
+                share.shares -= shares_traded
 
             share.save()
 

@@ -19,5 +19,5 @@ class RegisterForm(UserCreationForm):
         if not commit:
             raise ValueError("Must save user to db to create profile")
         user = super().save(commit=True)
-        Portfolio.objects.create(user=user)
+        Portfolio.objects.create(user=user, balance=50000)
         return user

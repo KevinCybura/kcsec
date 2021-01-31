@@ -3,7 +3,7 @@ from decimal import Decimal
 import pytest
 
 from kcsec.crypto.forms import OrderForm
-from kcsec.crypto.models import CryptoShare
+from kcsec.crypto.models import CryptoShare, CryptoOrder
 from kcsec.crypto.models import Ohlcv
 from kcsec.crypto.models.factories.share import CryptoShareFactory
 
@@ -62,7 +62,7 @@ class TestOrderForm:
         assert share.average_price == 1
 
     @pytest.mark.django_db
-    def test_save_buy(self, portfolio_namespace):
+    def test_save_sell(self, portfolio_namespace):
         Ohlcv.objects.filter(symbol="BTCUSD", time_frame="1m").update(close=100)
         share = portfolio_namespace.share
         form = OrderForm(
@@ -85,6 +85,10 @@ class TestOrderForm:
         assert order.portfolio.balance == 49900
         assert share.shares == 51
         assert share.average_price == Decimal("2.94118")
+
+        order = CryptoOrder.objects.get(pk=order.pk)
+        assert order == share.cryptoorder_set.get(pk=order.pk)
+        assert order.share == share
 
     @pytest.mark.django_db
     def test_save_buy(self, portfolio_namespace):
@@ -110,8 +114,9 @@ class TestOrderForm:
         assert order.portfolio.balance == 49900
         assert share.shares == 51
         assert share.average_price == Decimal("2.94118")
+        assert order.share == order
 
-    @pytest.mark.django_db
+    @pytest.mark.django_db()
     def test_save_delete_share(self, portfolio_namespace):
         Ohlcv.objects.filter(symbol="ETHUSD", time_frame="1m").update(close=100)
         share = CryptoShareFactory(
@@ -137,6 +142,9 @@ class TestOrderForm:
 
         with pytest.raises(CryptoShare.DoesNotExist):
             portfolio_namespace.portfolio.cryptoshare_set.get(symbol="ETHUSD")
+
+        # Pytest teardown fails if the share is deleted
+        share.save()
 
     @pytest.mark.django_db
     def test_clean_shares(self, portfolio_namespace):

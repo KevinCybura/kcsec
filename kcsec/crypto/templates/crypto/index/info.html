@@ -30,29 +30,33 @@
 
             </form>
         </div>
-        {% if user.is_authenticated and symbol.share_data is not None %}
+        {% if user.is_authenticated %}
+            {#            and symbol.share_data is not None %}#}
             <div class="card-footer">
                 <div class="row info-footer justify-content-around">
-                    <p class="col-lg-12"><strong>Shares</strong>: {{ symbol.share_data.shares|floatformat:2 }}</p>
-                    <p class="col-lg-12">
-                        <strong>Equity</strong>:
-                        <span id="equity-{{ symbol.symbol }}">{{ symbol.share_data.equity }}</span>
-                    </p>
-                    <p class="col-lg-12"><strong>Average price</strong>
-                        : {{ symbol.share_data.average_price }}
-                    </p>
-                    <p class="col-lg-12">
-                        <strong>Today's return</strong>:
-                        <span id="todays-return-{{ symbol.symbol }}">
+                    <p class="col-lg-12"><strong>Buying power: {{ buying_power }} </strong></p>
+                    {% if symbol.share_data %}
+                        <p class="col-lg-12"><strong>Shares</strong>: {{ symbol.share_data.shares|floatformat:2 }}</p>
+                        <p class="col-lg-12">
+                            <strong>Equity</strong>:
+                            <span id="equity-{{ symbol.symbol }}">{{ symbol.share_data.equity }}</span>
+                        </p>
+                        <p class="col-lg-12"><strong>Average price</strong>
+                            : {{ symbol.share_data.average_price }}
+                        </p>
+                        <p class="col-lg-12">
+                            <strong>Today's return</strong>:
+                            <span id="todays-return-{{ symbol.symbol }}">
                             {{ symbol.share_data.todays_price }} ({{ symbol.share_data.todays_percent|floatformat:2 }}%)
                         </span>
-                    </p>
-                    <p class="col-lg-12">
-                        <strong>Total return</strong>:
-                        <span id="total-return-{{ symbol.symbol }}">
+                        </p>
+                        <p class="col-lg-12">
+                            <strong>Total return</strong>:
+                            <span id="total-return-{{ symbol.symbol }}">
                             {{ symbol.share_data.total_price }} ({{ symbol.share_data.total_percent|floatformat:2 }}%)
                         </span>
-                    </p>
+                        </p>
+                    {% endif %}
                 </div>
             </div>
         {% endif %}

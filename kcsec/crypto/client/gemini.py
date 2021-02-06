@@ -5,9 +5,7 @@ from typing import TYPE_CHECKING
 import websockets
 from channels.db import database_sync_to_async
 from channels.layers import get_channel_layer
-from django.db.models import F
-from django.db.models import OuterRef
-from django.db.models import Subquery
+from django.db.models import Q
 from websockets.exceptions import InvalidMessage
 
 from kcsec.crypto.client import Consumer
@@ -92,8 +90,9 @@ class GeminiConsumer(Consumer):
             await self.update_symbol(message)
 
         logger.info(message)
-        await self.channel_layer.group_send("crypto", {"type": "update_data", "message": message})
         await self.fill_orders(message)
+        logger.info("Attempt to fill unfilled orders.")
+        await self.channel_layer.group_send("crypto", {"type": "update_data", "message": message})
 
     async def handle_l2_updates(self, message: "L2Message"):
         if not self.order_book.get(message["symbol"]):
@@ -110,7 +109,29 @@ class GeminiConsumer(Consumer):
 
     @database_sync_to_async
     def fill_orders(self, message: "CandleMessage"):
-        pass
+        price = message["changes"][-1]["close"]
+        filter_not_ready_orders = (Q(trade_type=CryptoOrder.TradeType.BUY) & Q(price__gte=price)) | (
+            Q(trade_type=CryptoOrder.TradeType.SELL) & Q(price__lte=price)
+        )
+        unfilled_orders = CryptoOrder.objects.filter(filter_not_ready_orders, symbol=message["symbol"], filled=False)
+
+        shares = []
+        for order in unfilled_orders:
+            order.price = price
+            order.filled = True
+            if order.share:
+                share, _ = CryptoShare.objects.execute_order(order, save=False)
+                share.price = price
+                share.cryptoorder_set.add(order)
+                shares.append(share)
+
+            else:
+                # TODO: when an order is created create a empty share for the user so we dont have to handle this case.
+                share, _ = CryptoShare.objects.execute_order(order)
+                order.share = share
+
+        CryptoShare.objects.bulk_update(shares, ["average_price", "shares"])
+        CryptoOrder.objects.bulk_update(unfilled_orders, ["share", "filled"])
 
     @classmethod
     def convert(cls, changes: "MessageChanges") -> list["Change"]:

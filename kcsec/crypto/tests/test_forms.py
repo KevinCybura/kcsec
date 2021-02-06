@@ -3,7 +3,8 @@ from decimal import Decimal
 import pytest
 
 from kcsec.crypto.forms import OrderForm
-from kcsec.crypto.models import CryptoShare, CryptoOrder
+from kcsec.crypto.models import CryptoOrder
+from kcsec.crypto.models import CryptoShare
 from kcsec.crypto.models import Ohlcv
 from kcsec.crypto.models.factories.share import CryptoShareFactory
 
@@ -114,7 +115,7 @@ class TestOrderForm:
         assert order.portfolio.balance == 49900
         assert share.shares == 51
         assert share.average_price == Decimal("2.94118")
-        assert order.share == order
+        assert order.share == share
 
     @pytest.mark.django_db()
     def test_save_delete_share(self, portfolio_namespace):

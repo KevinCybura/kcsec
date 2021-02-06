@@ -11,10 +11,11 @@ if TYPE_CHECKING:
 
 
 class CryptoShareQuerySet(PostgresQuerySet):
-    def execute_order(self, order: "CryptoOrder") -> "Tuple[CryptoShare, bool]":
+    def execute_order(self, order: "CryptoOrder", save: bool = True) -> "Tuple[CryptoShare, bool]":
         """
             Execute a order and update a `CryptoShare` row. Creates or updates a `CryptoShare` row.
             If shares falls to 0 the row is deleted.
+        :param save: Whether to save the share after updating it used for bulk updating shares with execute_order.
         :param order: `CryptoOrder` that is used to update the a `CryptoShare` row.
         :return: `Tuple[CryptoShare, bool]`  (share, created)
         """
@@ -47,6 +48,7 @@ class CryptoShareQuerySet(PostgresQuerySet):
             else:
                 share.shares -= order.shares
 
-            share.save()
+            if save:
+                share.save()
 
         return share, False

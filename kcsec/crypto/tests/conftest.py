@@ -1,6 +1,7 @@
 from types import SimpleNamespace
 
 import pytest
+from channels.db import database_sync_to_async
 from django.contrib.auth.models import AnonymousUser
 
 from kcsec.core.models.factories.portfolio import PortfolioFactory
@@ -24,6 +25,17 @@ def portfolio_namespace(crypto_seeds):
         for _ in range(5)
     ]
     return SimpleNamespace(portfolio=portfolio, share=share, order=orders)
+
+
+@pytest.fixture
+def seed_namespace():
+    seeds = crypto_seed(["BTC", "ETH", "LTC"], create_ohlcv=True)
+    portfolio = PortfolioFactory(balance=50000)
+    share = CryptoShareFactory(portfolio=portfolio, shares=50.0, symbol=seeds.symbols[0])
+    orders = [
+        CryptoOrderFactory(share=share, shares=10.0, portfolio=portfolio, symbol=seeds.symbols[0]) for _ in range(5)
+    ]
+    return SimpleNamespace(portfolio=portfolio, share=share, order=orders, seeds=seeds)
 
 
 @pytest.fixture

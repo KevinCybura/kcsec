@@ -86,7 +86,7 @@ class OrderForm(forms.ModelForm):
         order: CryptoOrder = super().save(commit=commit)
         # If the order has not yet been filled dont update anything.
         if order.filled:
-            share, created = CryptoShare.objects.execute_order(order=self.instance)
+            share, created = CryptoShare.objects.execute_order(order=order)
 
             # Delete the share row if there are no more shares
             if not created and share.shares == 0:

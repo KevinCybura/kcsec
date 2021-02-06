@@ -3,6 +3,7 @@ from django.utils.translation import gettext_lazy as _
 
 from kcsec.core.base import BaseModel
 from kcsec.crypto.models._meta import crypto_entity
+from kcsec.crypto.models.querysets.order import CryptoOrderQuerySet
 
 
 class CryptoOrder(BaseModel):
@@ -22,6 +23,8 @@ class CryptoOrder(BaseModel):
     filled = models.BooleanField(default=False)
     trade_type = models.CharField(choices=TradeType.choices, max_length=5, default=TradeType.BUY)
     order_type = models.CharField(choices=OrderType.choices, max_length=20, default=OrderType.MARKET)
+
+    objects = CryptoOrderQuerySet.as_manager()
 
     class Meta:
         db_table = crypto_entity("order")

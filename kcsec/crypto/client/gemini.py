@@ -5,6 +5,9 @@ from typing import TYPE_CHECKING
 import websockets
 from channels.db import database_sync_to_async
 from channels.layers import get_channel_layer
+from django.db.models import F
+from django.db.models import OuterRef
+from django.db.models import Subquery
 from websockets.exceptions import InvalidMessage
 
 from kcsec.crypto.client import Consumer
@@ -105,8 +108,8 @@ class GeminiConsumer(Consumer):
                 "crypto", {"type": "update.order_book", "message": order_book.order_book}
             )
 
-    async def fill_orders(self, message: "CandleMessage"):
-        # TODO fill unfilled orders
+    @database_sync_to_async
+    def fill_orders(self, message: "CandleMessage"):
         pass
 
     @classmethod

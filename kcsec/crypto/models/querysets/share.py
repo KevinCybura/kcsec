@@ -21,7 +21,8 @@ class CryptoShareQuerySet(PostgresQuerySet):
         with transaction.atomic(using=self.db):
             try:
                 share: "CryptoShare" = self.select_for_update().get(
-                    portfolio_id=order.portfolio_id, symbol_id=order.symbol_id
+                    portfolio_id=order.portfolio_id,
+                    symbol_id=order.symbol_id,
                 )
             except self.model.DoesNotExist:
                 share: "CryptoShare" = self.create(
@@ -30,19 +31,21 @@ class CryptoShareQuerySet(PostgresQuerySet):
                     shares=order.shares,
                     average_price=order.price,
                 )
+                share.cryptoorder_set.add(order)
                 return share, True
 
-            shares_traded = order.shares
+            share.cryptoorder_set.add(order)
+
             # If its a buy add shares and update average_price.
             if order.trade_type == order.TradeType.BUY:
-                total = (share.average_price * share.shares) + (order.price * shares_traded)
+                total = (share.average_price * share.shares) + (order.price * order.shares)
 
-                share.average_price = total / (shares_traded + share.shares)
+                share.average_price = total / (order.shares + share.shares)
 
-                share.shares += shares_traded
+                share.shares += order.shares
             # If its a sell subtract the shares
             else:
-                share.shares -= shares_traded
+                share.shares -= order.shares
 
             share.save()
 

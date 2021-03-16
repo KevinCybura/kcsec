@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: django-channels
+  labels:
+    pod: django-channels
+spec:
+  selector:
+    matchLabels:
+      pod: django-channels
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        pod: django-channels
+    spec:
+      containers:
+        - name: backend
+          imagePullPolicy: Always
+          image: kevincybura/kcsec:latest
+          command: ["./docker-entrypoint.sh"]
+          args: [ "channels" ]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+          ports:
+            - containerPort: 8001
+              name: daphne
+          envFrom:
+            - configMapRef:
+                name: paper-trader-config
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: postgres-user
+
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: postgres-password
+

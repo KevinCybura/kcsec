@@ -16,8 +16,8 @@ def crypto_seeds():
 
 
 @pytest.fixture
-def portfolio(crypto_seeds):
-    portfolio = PortfolioFactory()
+def portfolio_namespace(crypto_seeds):
+    portfolio = PortfolioFactory(balance=50000)
     share = CryptoShareFactory(portfolio=portfolio, shares=50.0, symbol=crypto_seeds.symbols[0])
     orders = [
         CryptoOrderFactory(share=share, shares=10.0, portfolio=portfolio, symbol=crypto_seeds.symbols[0])
@@ -38,11 +38,11 @@ def trade_view_request():
 
 
 @pytest.fixture
-def trade_view_request_authenticated(portfolio):
+def trade_view_request_authenticated(portfolio_namespace):
     return SimpleNamespace(
         method="POST",
         GET={"symbol": "BTCUSD"},
         POST={"symbol": "BTCUSD"},
         FILES={},
-        user=SimpleNamespace(is_authenticated=True, portfolio=portfolio.portfolio),
+        user=SimpleNamespace(is_authenticated=True, portfolio=portfolio_namespace.portfolio),
     )

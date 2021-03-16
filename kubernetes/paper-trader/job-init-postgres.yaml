@@ -1,0 +1,30 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: django-migrations
+spec:
+  template:
+    spec:
+      containers:
+        - name: paper-trader
+          image: kevincybura/kcsec:latest
+          command: [ "./docker-entrypoint.sh" ]
+          args: [ "migrate" ]
+          envFrom:
+            - configMapRef:
+                name: paper-trader-config
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: postgres-user
+
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: postgres-password
+      restartPolicy: Never
+  backoffLimit: 5
+

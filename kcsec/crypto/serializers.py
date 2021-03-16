@@ -126,10 +126,10 @@ class CryptoTemplateContext(serializers.Serializer):
 
     @staticmethod
     def get_form(obj):
-        if invalid_form := obj.get("invalid_form"):
-            return invalid_form
+        errors = obj["invalid_form"].errors if obj.get("invalid_form") else None
+
         if form_class := obj.get("form_class"):
-            return form_class(
+            form = form_class(
                 initial={
                     "portfolio": getattr(obj["user"], "portfolio", None),
                     "symbol": obj["symbol"],
@@ -137,3 +137,7 @@ class CryptoTemplateContext(serializers.Serializer):
                 },
                 auto_id=f"id_{obj['symbol']}_%s",
             )
+            if errors:
+                form._errors = errors
+            return form
+        return None

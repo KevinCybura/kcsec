@@ -1,3 +1,4 @@
+import locale
 import logging
 from datetime import timedelta
 
@@ -49,6 +50,11 @@ class TradeView(FormView):
         context["navs"] = self.SYMBOLS
 
         context["current_nav"] = symbol or "Crypto"
+
+        if self.request.user.is_authenticated:
+            locale.setlocale(locale.LC_ALL, "en_US.UTF-8")
+            print(self.request.user.portfolio.balance)
+            context["buying_power"] = locale.currency(self.request.user.portfolio.balance, grouping=True)
 
         def current_price(sym):
             return Ohlcv.objects.filter(symbol=sym, exchange="gemini", time_frame="1m").latest().close

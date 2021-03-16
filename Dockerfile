@@ -16,8 +16,6 @@ ENV LANGUAGE en_US:en
 # Set the working directory
 WORKDIR /app
 
-# Enable storing logs to S3
-ENV S3_STORAGE_BACKEND=1
 # Unbuffer python so that we ensure we get all of the logs
 ENV PYTHONUNBUFFERED=1
 # Set the poetry version
@@ -40,7 +38,8 @@ RUN poetry run pip install -U pip
 RUN if [ "$install_dev" = "true" ] ; then poetry install ; else poetry install --ansi --no-dev ; fi && \
     rm -rf ~/.cache
 
+
 # Add everything
 ADD . .
 
-ENTRYPOINT ["sh", "docker-entrypoint.sh"]
+ENTRYPOINT ["sh", "./docker-entrypoint.sh"]

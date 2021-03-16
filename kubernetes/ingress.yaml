@@ -1,0 +1,41 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: paper-trader-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+spec:
+  rules:
+    - host: paper-trader.kevincybura.com
+      http:
+        paths:
+          - path: /crypto/
+            pathType: Prefix
+            backend:
+              service:
+                name: paper-trader-service
+                port:
+                  number: 8000
+          - path: /admin/
+            pathType: Prefix
+            backend:
+              service:
+                name: paper-trader-service
+                port:
+                  number: 8000
+          - path: /ws/
+            pathType: Prefix
+            backend:
+              service:
+                name: django-channels-service
+                port:
+                  number: 8001
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: paper-trader-service
+                port:
+                  number: 8000
